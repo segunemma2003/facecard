@@ -59,12 +59,21 @@ const Navbar = () => {
                   <Link to="/nominees" className="w-full">Current Nominees</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link to="/categories" className="w-full">Categories</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/past-winners" className="w-full">Past Winners</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Link to="/gallery" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
               Gallery
+            </Link>
+            <Link to="/approach" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
+              Our Approach
+            </Link>
+            <Link to="/about" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
+              About
             </Link>
             <Link to="/registration" className="hidden lg:block">
               <Button variant="outline" className="border-face-gold text-face-gold hover:bg-face-gold hover:text-white">
@@ -105,6 +114,13 @@ const Navbar = () => {
                 Current Nominees
               </Link>
               <Link 
+                to="/categories" 
+                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Categories
+              </Link>
+              <Link 
                 to="/past-winners" 
                 className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
                 onClick={() => setMobileMenuOpen(false)}
@@ -117,6 +133,20 @@ const Navbar = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Gallery
+              </Link>
+              <Link 
+                to="/approach" 
+                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Our Approach
+              </Link>
+              <Link 
+                to="/about" 
+                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                About
               </Link>
               <Link 
                 to="/registration"
