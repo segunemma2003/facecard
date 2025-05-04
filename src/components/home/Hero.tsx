@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Award, TrendingUp, Users, Trophy, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
