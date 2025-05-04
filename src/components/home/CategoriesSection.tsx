@@ -12,7 +12,7 @@ import {
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// Sample categories data
+// Enhanced categories data with detailed descriptions
 const categories = [
   {
     id: 1,
@@ -21,7 +21,13 @@ const categories = [
     icon: "💻",
     nominees: 28,
     color: "bg-blue-50 border-blue-200",
-    textColor: "text-blue-700"
+    textColor: "text-blue-700",
+    criteria: [
+      "Demonstrated significant technological breakthroughs within the past year",
+      "Created solutions that address real-world challenges with measurable impact",
+      "Shown exceptional innovation that disrupts traditional approaches",
+      "Established a path for future development and wider application"
+    ]
   },
   {
     id: 2,
@@ -30,7 +36,13 @@ const categories = [
     icon: "🏆",
     nominees: 42,
     color: "bg-green-50 border-green-200",
-    textColor: "text-green-700"
+    textColor: "text-green-700",
+    criteria: [
+      "Led organizations or teams to exceptional performance and achievement",
+      "Demonstrated ethical leadership and integrity in decision-making",
+      "Fostered inclusive environments that celebrate diversity and empower others",
+      "Navigated significant challenges with resilience and strategic vision"
+    ]
   },
   {
     id: 3,
@@ -39,7 +51,13 @@ const categories = [
     icon: "❤️",
     nominees: 35,
     color: "bg-red-50 border-red-200",
-    textColor: "text-red-700"
+    textColor: "text-red-700",
+    criteria: [
+      "Implemented initiatives that directly improved the quality of life for vulnerable populations",
+      "Demonstrated sustainable approaches to addressing humanitarian challenges",
+      "Mobilized resources and built partnerships to maximize impact",
+      "Advocated effectively for systemic change and policy improvements"
+    ]
   },
   {
     id: 4,
@@ -48,7 +66,13 @@ const categories = [
     icon: "🌱",
     nominees: 31,
     color: "bg-emerald-50 border-emerald-200",
-    textColor: "text-emerald-700"
+    textColor: "text-emerald-700",
+    criteria: [
+      "Pioneered sustainable practices that significantly reduce environmental impact",
+      "Demonstrated measurable improvements in resource efficiency and conservation",
+      "Created models that balance economic viability with environmental stewardship",
+      "Influenced industry standards and practices toward greater sustainability"
+    ]
   },
   {
     id: 5,
@@ -57,7 +81,13 @@ const categories = [
     icon: "🎨",
     nominees: 38,
     color: "bg-purple-50 border-purple-200",
-    textColor: "text-purple-700"
+    textColor: "text-purple-700",
+    criteria: [
+      "Produced creative works that demonstrate exceptional originality and artistic excellence",
+      "Used creative expression to challenge perspectives and inspire dialogue",
+      "Made significant contributions to artistic fields or cultural understanding",
+      "Expanded accessibility and appreciation of the arts across diverse audiences"
+    ]
   },
   {
     id: 6,
@@ -66,13 +96,20 @@ const categories = [
     icon: "📚",
     nominees: 27,
     color: "bg-yellow-50 border-yellow-200",
-    textColor: "text-yellow-700"
+    textColor: "text-yellow-700",
+    criteria: [
+      "Developed innovative teaching methods that measurably improve learning outcomes",
+      "Expanded educational access to underserved or marginalized communities",
+      "Created resources that enhance educational quality and effectiveness",
+      "Demonstrated exceptional commitment to learner success and development"
+    ]
   }
 ];
 
 const CategoriesSection = () => {
   const [api, setApi] = useState<any>();
   const [isAutoplay, setIsAutoplay] = useState(true);
+  const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
 
   useEffect(() => {
     if (!api || !isAutoplay) return;
@@ -83,6 +120,10 @@ const CategoriesSection = () => {
     
     return () => clearInterval(interval);
   }, [api, isAutoplay]);
+
+  const toggleCategory = (id: number) => {
+    setExpandedCategory(expandedCategory === id ? null : id);
+  };
 
   return (
     <section className="section-padding bg-gray-50" id="categories">
@@ -121,9 +162,32 @@ const CategoriesSection = () => {
                         {category.name}
                       </h3>
                       <p className="text-gray-600 mb-4">{category.description}</p>
-                      <Badge variant="outline" className="bg-white">
-                        {category.nominees} Nominees
-                      </Badge>
+                      
+                      <div className="mt-4">
+                        <button 
+                          onClick={() => toggleCategory(category.id)}
+                          className={`text-sm font-medium ${category.textColor} hover:underline flex items-center mb-2`}
+                        >
+                          {expandedCategory === category.id ? "Hide Criteria" : "View Criteria"}
+                        </button>
+                        
+                        {expandedCategory === category.id && (
+                          <div className="mt-3 bg-white/80 p-3 rounded-md text-left animate-fade-in">
+                            <h4 className="font-medium mb-2">Award Criteria:</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                              {category.criteria.map((criterion, idx) => (
+                                <li key={idx}>{criterion}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="mt-4">
+                        <Badge variant="outline" className="bg-white">
+                          {category.nominees} Nominees
+                        </Badge>
+                      </div>
                     </CardContent>
                     <CardFooter className="p-4 pt-0">
                       <Link 

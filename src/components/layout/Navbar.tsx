@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Award, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -34,9 +34,13 @@ const Navbar = () => {
             to="/"
             className="flex items-center space-x-2"
           >
-            <Award className="h-8 w-8 text-face-gold" />
-            <span className={`font-serif font-bold text-2xl ${isScrolled ? 'text-face-blue' : 'text-white'}`}>
-              FACE Awards
+            <img 
+              src="/lovable-uploads/d3c7b365-309d-4e28-8670-d9e32511bd89.png" 
+              alt="FACE Awards Logo" 
+              className="h-12 w-auto"
+            />
+            <span className={`font-serif font-bold text-2xl ${isScrolled ? 'text-face-blue' : 'text-white'} hidden sm:inline-block`}>
+              Awards
             </span>
           </Link>
 
