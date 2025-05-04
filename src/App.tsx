@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import PastWinners from "./pages/PastWinners";
 import Gallery from "./pages/Gallery";
 import Nominees from "./pages/Nominees";
+import NomineeProfile from "./pages/NomineeProfile";
 import Registration from "./pages/Registration";
 import NotFound from "./pages/NotFound";
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/past-winners" element={<PastWinners />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/nominees" element={<Nominees />} />
+          <Route path="/nominees/:id" element={<NomineeProfile />} />
           <Route path="/registration" element={<Registration />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

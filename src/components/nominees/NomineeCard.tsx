@@ -1,11 +1,12 @@
 
 import { useState } from 'react';
-import { Award, ThumbsUp } from 'lucide-react';
+import { Award, ThumbsUp, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
+import { Link } from 'react-router-dom';
 
 interface Nominee {
   id: number;
@@ -79,7 +80,7 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
         </div>
       </CardContent>
       
-      <CardFooter className="border-t border-gray-100 pt-4">
+      <CardFooter className="border-t border-gray-100 pt-4 flex flex-col space-y-3">
         {nominee.canVote ? (
           <Button 
             className={`w-full ${hasVoted ? 'bg-green-600' : 'bg-face-gold text-face-blue hover:bg-yellow-500'}`}
@@ -111,6 +112,11 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
             Voting for this nominee has ended
           </div>
         )}
+        <Button variant="outline" className="w-full" asChild>
+          <Link to={`/nominees/${nominee.id}`} className="flex items-center justify-center">
+            View Full Profile <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
   );
