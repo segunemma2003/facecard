@@ -21,7 +21,7 @@ const AboutSection = () => {
 
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
-            <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-face-gold shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-xl font-serif font-semibold mb-3 text-face-blue">FACE Represents</h3>
               <div className="space-y-4 ml-2">
                 <div className="flex gap-3">
@@ -59,7 +59,7 @@ const AboutSection = () => {
               </div>
             </div>
 
-            <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-face-burgundy shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-xl font-serif font-semibold mb-3 text-face-burgundy">Our Approach</h3>
               <ul className="space-y-3 ml-2">
                 <li className="flex gap-3">

@@ -12,7 +12,10 @@ import NomineeProfile from "./pages/NomineeProfile";
 import Registration from "./pages/Registration";
 import NotFound from "./pages/NotFound";
 import ImpactStories from "./pages/ImpactStories";
-import AwardProcess from "./pages/AwardProcess"; // Add import for new page
+import AwardProcess from "./pages/AwardProcess";
+import Categories from "./pages/Categories";
+import ApproachPage from "./pages/ApproachPage";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +33,10 @@ const App = () => (
           <Route path="/nominees/:id" element={<NomineeProfile />} />
           <Route path="/registration" element={<Registration />} />
           <Route path="/impact-stories" element={<ImpactStories />} />
-          <Route path="/award-process" element={<AwardProcess />} /> {/* Add new route */}
+          <Route path="/award-process" element={<AwardProcess />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/approach" element={<ApproachPage />} />
+          <Route path="/about" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
