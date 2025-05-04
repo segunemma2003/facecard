@@ -11,6 +11,7 @@ import Nominees from "./pages/Nominees";
 import NomineeProfile from "./pages/NomineeProfile";
 import Registration from "./pages/Registration";
 import NotFound from "./pages/NotFound";
+import ImpactStories from "./pages/ImpactStories"; // New page for impact stories
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/nominees" element={<Nominees />} />
           <Route path="/nominees/:id" element={<NomineeProfile />} />
           <Route path="/registration" element={<Registration />} />
+          <Route path="/impact-stories" element={<ImpactStories />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

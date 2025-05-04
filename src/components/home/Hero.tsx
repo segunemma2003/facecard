@@ -1,11 +1,24 @@
 
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Award, TrendingUp, Users, Trophy } from 'lucide-react';
+import { Award, TrendingUp, Users, Trophy, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import TrendingTicker from './TrendingTicker';
+
+// Sample trending nominees data
+const trendingNominees = [
+  { name: "Dr. Aisha Williams", category: "Technology Innovation" },
+  { name: "EcoTech Solutions", category: "Sustainable Development" },
+  { name: "Doctors Beyond Borders", category: "Humanitarian Impact" },
+  { name: "Maria Gonzalez", category: "Leadership Excellence" }
+];
+
+// Next voting end date (one month from now)
+const nextVotingEnd = new Date(new Date().setDate(new Date().getDate() + 30));
 
 const Hero = () => {
   const countRef = useRef<HTMLDivElement>(null);
+  const [days, hours, minutes, seconds] = useCountdown(nextVotingEnd);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -53,16 +66,49 @@ const Hero = () => {
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81')] bg-cover bg-center bg-no-repeat opacity-30 mix-blend-overlay"></div>
       </div>
 
+      {/* Trending Ticker */}
+      <div className="relative w-full">
+        <TrendingTicker nominees={trendingNominees} />
+      </div>
+
       {/* Content */}
-      <div className="relative container mx-auto px-4 pt-32 pb-16 flex flex-col justify-center flex-grow">
+      <div className="relative container mx-auto px-4 pt-20 pb-16 flex flex-col justify-center flex-grow">
         <div className="max-w-3xl mx-auto text-center text-white">
           <div className="mb-6 inline-block">
             <Award className="h-16 w-16 text-face-gold animate-bounce-slow mx-auto" />
           </div>
           <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in">
-            Outstanding FACE Global<br />
-            <span className="gold-gradient trophy-shine text-transparent bg-clip-text">Recognition Awards</span>
+            <span className="text-transparent bg-clip-text gold-gradient trophy-shine">Celebrating Impact</span>
+            <br />
+            Across the Globe
           </h1>
+          
+          {/* Live Countdown Timer */}
+          <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 mb-8 inline-block">
+            <p className="text-sm mb-2">Voting ends in:</p>
+            <div className="flex justify-center space-x-2 text-xl font-bold">
+              <div className="flex flex-col items-center">
+                <span>{days}</span>
+                <span className="text-xs text-gray-300">days</span>
+              </div>
+              <span>:</span>
+              <div className="flex flex-col items-center">
+                <span>{hours}</span>
+                <span className="text-xs text-gray-300">hrs</span>
+              </div>
+              <span>:</span>
+              <div className="flex flex-col items-center">
+                <span>{minutes}</span>
+                <span className="text-xs text-gray-300">min</span>
+              </div>
+              <span>:</span>
+              <div className="flex flex-col items-center animate-pulse">
+                <span>{seconds}</span>
+                <span className="text-xs text-gray-300">sec</span>
+              </div>
+            </div>
+          </div>
+          
           <p className="text-xl mb-8 animate-fade-in opacity-90">
             Celebrating Focus, Achievement, Courage, and Excellence across the globe. 
             Recognizing outstanding individuals and organizations making remarkable contributions.
@@ -122,5 +168,35 @@ const Hero = () => {
     </section>
   );
 };
+
+// Custom countdown hook
+function useCountdown(targetDate: Date) {
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
+
+  function calculateTimeLeft(targetDate: Date) {
+    const difference = targetDate.getTime() - new Date().getTime();
+    
+    if (difference <= 0) {
+      return [0, 0, 0, 0];
+    }
+    
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+    
+    return [days, hours, minutes, seconds];
+  }
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(targetDate));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [targetDate]);
+
+  return timeLeft;
+}
 
 export default Hero;
