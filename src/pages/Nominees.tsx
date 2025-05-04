@@ -14,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NomineeCard from '@/components/nominees/NomineeCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import CountdownTimer from '@/components/voting/CountdownTimer';
+import UpcomingVotes from '@/components/voting/UpcomingVotes';
 
 // Sample nominees data
 const nomineesData = {
@@ -127,6 +129,27 @@ const nomineesData = {
   ]
 };
 
+// Sample upcoming votes data
+const upcomingVotesData = [
+  {
+    id: 1,
+    category: "Creative Arts",
+    startsAt: new Date(new Date().setDate(new Date().getDate() + 15)),
+    endsAt: new Date(new Date().setDate(new Date().getDate() + 45)),
+    nominees: 12
+  },
+  {
+    id: 2,
+    category: "Educational Excellence",
+    startsAt: new Date(new Date().setDate(new Date().getDate() + 30)),
+    endsAt: new Date(new Date().setDate(new Date().getDate() + 60)),
+    nominees: 8
+  }
+];
+
+// Current voting end date (one month from now)
+const currentVotingEndDate = new Date(new Date().setDate(new Date().getDate() + 30));
+
 const categories = ["Technology Innovation", "Leadership Excellence", "Humanitarian Impact", "Sustainable Development"];
 
 const Nominees = () => {
@@ -179,51 +202,61 @@ const Nominees = () => {
         </div>
       </section>
       
-      {/* Voting Statistics */}
+      {/* Countdown and Stats Grid */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-center justify-center mb-8">
-              <PieChart className="h-6 w-6 text-face-gold mr-2" />
-              <h2 className="text-2xl font-serif font-bold">Voting Statistics</h2>
-            </div>
-            
-            <div className="grid md:grid-cols-4 gap-4">
-              <Card className="bg-face-blue text-white">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Total Votes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{stats.totalVotes}</p>
-                </CardContent>
-              </Card>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="col-span-2">
+                <CountdownTimer endDate={currentVotingEndDate} />
+              </div>
               
-              <Card className="bg-face-gold text-face-blue">
+              <Card className="bg-face-blue text-white h-full">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Most Active Category</CardTitle>
+                  <CardTitle className="text-lg flex items-center">
+                    <PieChart className="h-4 w-4 mr-2 text-face-gold" />
+                    Most Active Category
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-xl font-bold truncate">{stats.mostActive}</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="col-span-2">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Category Engagement</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {Object.keys(stats.categoryVotes).map((category) => (
-                    <div key={category} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>{category}</span>
-                        <span>{stats.categoryVotes[category]} votes</span>
-                      </div>
-                      <Progress value={(stats.categoryVotes[category] / stats.totalVotes) * 100} className="h-2" />
+                <CardContent className="space-y-2">
+                  <p className="text-2xl font-bold">{stats.mostActive}</p>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Engagement</span>
+                      <span>{Math.round((stats.categoryVotes[stats.mostActive] / stats.totalVotes) * 100)}%</span>
                     </div>
-                  ))}
+                    <Progress value={(stats.categoryVotes[stats.mostActive] / stats.totalVotes) * 100} className="h-2 bg-white/20" />
+                  </div>
                 </CardContent>
               </Card>
             </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Category engagement */}
+      <section className="py-8 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center">
+                  <PieChart className="h-5 w-5 text-face-gold mr-2" />
+                  Category Engagement
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {Object.keys(stats.categoryVotes).map((category) => (
+                  <div key={category} className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>{category}</span>
+                      <span>{Math.round((stats.categoryVotes[category] / stats.totalVotes) * 100)}%</span>
+                    </div>
+                    <Progress value={(stats.categoryVotes[category] / stats.totalVotes) * 100} className="h-2" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -285,6 +318,20 @@ const Nominees = () => {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Upcoming votes section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl font-serif font-bold mb-8 flex items-center">
+              <Calendar className="h-6 w-6 text-face-gold mr-2" />
+              Upcoming Voting Periods
+            </h2>
+            
+            <UpcomingVotes votes={upcomingVotesData} />
           </div>
         </div>
       </section>

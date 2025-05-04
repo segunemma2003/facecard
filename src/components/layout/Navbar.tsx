@@ -54,7 +54,7 @@ const Navbar = () => {
                 <span>Awards</span>
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className="bg-white">
                 <DropdownMenuItem asChild>
                   <Link to="/nominees" className="w-full">Current Nominees</Link>
                 </DropdownMenuItem>

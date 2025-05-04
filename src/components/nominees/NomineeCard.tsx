@@ -72,7 +72,7 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
         
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>Current Votes</span>
+            <span>Current Standing</span>
             <span className="font-medium">{nominee.votingPercentage}%</span>
           </div>
           <Progress value={nominee.votingPercentage} className="h-2" />
