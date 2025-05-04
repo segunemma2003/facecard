@@ -1,5 +1,5 @@
 
-import { Award, CheckCircle } from 'lucide-react';
+import { Award, CheckCircle, Globe, Users, Trophy, Calendar, Handshake } from 'lucide-react';
 
 const AboutSection = () => {
   return (
@@ -64,27 +64,33 @@ const AboutSection = () => {
               <ul className="space-y-3 ml-2">
                 <li className="flex gap-3">
                   <div className="mt-1 text-face-burgundy">
-                    <CheckCircle className="h-5 w-5" />
+                    <Globe className="h-5 w-5" />
                   </div>
-                  <span>Global Reach, Local Impact - Recognizing excellence worldwide</span>
+                  <span><b>Global Reach, Local Impact</b> - Recognizing excellence worldwide, from local heroes to global brands making waves across continents</span>
                 </li>
                 <li className="flex gap-3">
                   <div className="mt-1 text-face-burgundy">
-                    <CheckCircle className="h-5 w-5" />
+                    <Users className="h-5 w-5" />
                   </div>
-                  <span>People-Centered Nomination Process through inclusive polling systems</span>
+                  <span><b>People-Centered Nomination</b> - Open, inclusive polling systems that ensure recognition comes directly from those who experience the impact</span>
                 </li>
                 <li className="flex gap-3">
                   <div className="mt-1 text-face-burgundy">
-                    <CheckCircle className="h-5 w-5" />
+                    <Trophy className="h-5 w-5" />
                   </div>
-                  <span>Prestigious Award Delivery - Beautifully crafted trophies and plaques</span>
+                  <span><b>Personal Award Delivery</b> - Beautifully crafted trophies and plaques delivered securely or presented personally to honorees worldwide</span>
                 </li>
                 <li className="flex gap-3">
                   <div className="mt-1 text-face-burgundy">
-                    <CheckCircle className="h-5 w-5" />
+                    <Calendar className="h-5 w-5" />
                   </div>
-                  <span>End-of-Year Global Recognition Ceremony for networking and celebration</span>
+                  <span><b>End-of-Year Ceremony</b> - Optional annual grand recognition event for networking and celebration in an atmosphere of elegance</span>
+                </li>
+                <li className="flex gap-3">
+                  <div className="mt-1 text-face-burgundy">
+                    <Handshake className="h-5 w-5" />
+                  </div>
+                  <span><b>Diverse International Collaboration</b> - A multicultural team of professionals ensuring our work remains relevant and inclusive globally</span>
                 </li>
               </ul>
             </div>
