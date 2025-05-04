@@ -1,17 +1,7 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Award, TrendingUp, Users, Trophy, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import TrendingTicker from './TrendingTicker';
-
-// Sample trending nominees data
-const trendingNominees = [
-  { name: "Dr. Aisha Williams", category: "Technology Innovation" },
-  { name: "EcoTech Solutions", category: "Sustainable Development" },
-  { name: "Doctors Beyond Borders", category: "Humanitarian Impact" },
-  { name: "Maria Gonzalez", category: "Leadership Excellence" }
-];
 
 // Next voting end date (one month from now)
 const nextVotingEnd = new Date(new Date().setDate(new Date().getDate() + 30));
@@ -64,11 +54,6 @@ const Hero = () => {
       <div className="absolute inset-0 hero-gradient overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81')] bg-cover bg-center bg-no-repeat opacity-30 mix-blend-overlay"></div>
-      </div>
-
-      {/* Trending Ticker */}
-      <div className="relative w-full">
-        <TrendingTicker nominees={trendingNominees} />
       </div>
 
       {/* Content */}
