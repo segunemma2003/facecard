@@ -83,7 +83,7 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
       <CardFooter className="border-t border-gray-100 pt-4 flex flex-col space-y-3">
         {nominee.canVote ? (
           <Button 
-            className={`w-full ${hasVoted ? 'bg-green-600' : 'bg-face-gold text-face-blue hover:bg-yellow-500'}`}
+            className={`w-full ${hasVoted ? 'bg-green-600 text-white' : 'bg-face-gold text-face-blue hover:bg-yellow-500 border-2 border-face-gold shadow-md font-semibold'}`}
             onClick={handleVote}
             disabled={isVoting || hasVoted}
           >
@@ -112,7 +112,7 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
             Voting for this nominee has ended
           </div>
         )}
-        <Button variant="outline" className="w-full" asChild>
+        <Button variant="outline" className="w-full border-2 shadow-sm" asChild>
           <Link to={`/nominees/${nominee.id}`} className="flex items-center justify-center">
             View Full Profile <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

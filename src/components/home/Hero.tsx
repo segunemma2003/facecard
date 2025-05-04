@@ -19,10 +19,10 @@ const Hero = () => {
             Recognizing outstanding achievements in Focus, Achievement, Courage, and Excellence across the world
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-scale-up">
-            <Button asChild size="lg" className="bg-face-gold hover:bg-yellow-500 text-face-blue font-medium">
+            <Button asChild size="lg" className="bg-face-gold hover:bg-yellow-500 text-face-blue font-medium border-2 border-face-gold shadow-lg">
               <Link to="/nominees">View Current Nominees</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/20">
+            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/20 border-2">
               <Link to="/registration">Register for Event</Link>
             </Button>
           </div>
