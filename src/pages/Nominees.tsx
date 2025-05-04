@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Award, Filter, PieChart } from 'lucide-react';
+import { Award, Filter, PieChart, Calendar } from 'lucide-react';
 import {
   Select,
   SelectContent,
