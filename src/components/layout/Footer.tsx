@@ -11,8 +11,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* About Column */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <Award className="h-6 w-6 text-face-gold" />
+            <div className="flex flex-col items-center md:items-start space-y-3 mb-4">
+              <img 
+                src="/lovable-uploads/d3c7b365-309d-4e28-8670-d9e32511bd89.png" 
+                alt="FACE Awards Logo" 
+                className="h-16 w-auto mb-2"
+              />
               <span className="font-serif font-bold text-xl">FACE Awards</span>
             </div>
             <p className="text-sm text-gray-300">
