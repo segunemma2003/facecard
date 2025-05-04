@@ -22,7 +22,7 @@ const Hero = () => {
             <Button asChild size="lg" className="bg-face-gold hover:bg-yellow-500 text-face-blue font-medium border-2 border-face-gold shadow-lg">
               <Link to="/nominees">View Current Nominees</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/20 border-2">
+            <Button asChild variant="outline" size="lg" className="border-white  bg-white/20 text-white hover:bg-white/40 border-2">
               <Link to="/registration">Register for Event</Link>
             </Button>
           </div>

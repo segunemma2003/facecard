@@ -57,14 +57,14 @@ const Categories = () => {
           <div className="max-w-5xl mx-auto mb-12">
             <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="bg-white/20 mx-auto mb-8 overflow-x-auto flex w-full md:w-auto">
-                <TabsTrigger value="all" className="data-[state=active]:bg-face-gold data-[state=active]:text-face-blue">
+                <TabsTrigger value="all" className="text-white data-[state=active]:bg-face-gold data-[state=active]:text-face-blue">
                   All Regions
                 </TabsTrigger>
                 {regions.map(region => (
                   <TabsTrigger 
                     key={region} 
                     value={region}
-                    className="data-[state=active]:bg-face-gold data-[state=active]:text-face-blue"
+                    className="text-white data-[state=active]:bg-face-gold data-[state=active]:text-face-blue"
                   >
                     {region}
                   </TabsTrigger>
