@@ -75,6 +75,9 @@ const Navbar = () => {
             <Link to="/about" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
               About
             </Link>
+            <Link to="/contact" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
+              Contact
+            </Link>
             <Link to="/registration" className="hidden lg:block">
               <Button variant="outline" className="border-face-gold text-face-gold hover:bg-face-gold hover:text-white">
                 Register for Event
@@ -147,6 +150,13 @@ const Navbar = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 About
+              </Link>
+              <Link 
+                to="/contact" 
+                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Contact
               </Link>
               <Link 
                 to="/registration"

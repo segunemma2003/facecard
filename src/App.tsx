@@ -16,6 +16,7 @@ import AwardProcess from "./pages/AwardProcess";
 import Categories from "./pages/Categories";
 import ApproachPage from "./pages/ApproachPage";
 import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/categories" element={<Categories />} />
           <Route path="/approach" element={<ApproachPage />} />
           <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

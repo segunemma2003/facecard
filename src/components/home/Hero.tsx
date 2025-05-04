@@ -1,187 +1,68 @@
-import { useEffect, useRef, useState } from 'react';
+
 import { Link } from 'react-router-dom';
-import { Award, TrendingUp, Users, Trophy, Calendar } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-// Next voting end date (one month from now)
-const nextVotingEnd = new Date(new Date().setDate(new Date().getDate() + 30));
-
 const Hero = () => {
-  const countRef = useRef<HTMLDivElement>(null);
-  const [days, hours, minutes, seconds] = useCountdown(nextVotingEnd);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const counters = entry.target.querySelectorAll('.counter-value');
-            counters.forEach(counter => {
-              const target = parseInt(counter.getAttribute('data-target') || '0');
-              let count = 0;
-              const updateCounter = () => {
-                const increment = target / 100;
-                if (count < target) {
-                  count += increment;
-                  (counter as HTMLElement).innerText = Math.ceil(count).toString();
-                  setTimeout(updateCounter, 10);
-                } else {
-                  (counter as HTMLElement).innerText = target.toString();
-                }
-              };
-              updateCounter();
-            });
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    if (countRef.current) {
-      observer.observe(countRef.current);
-    }
-
-    return () => {
-      if (countRef.current) {
-        observer.unobserve(countRef.current);
-      }
-    };
-  }, []);
-
   return (
-    <section className="relative min-h-screen flex flex-col">
-      {/* Background */}
-      <div className="absolute inset-0 hero-gradient overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-50"></div>
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81')] bg-cover bg-center bg-no-repeat opacity-30 mix-blend-overlay"></div>
-      </div>
-
-      {/* Content */}
-      <div className="relative container mx-auto px-4 pt-20 pb-16 flex flex-col justify-center flex-grow">
+    <section className="relative min-h-screen flex items-center hero-gradient">
+      {/* Background image overlay */}
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511578314322-379afb476865')] bg-cover bg-center bg-no-repeat opacity-20"></div>
+      
+      {/* Content container */}
+      <div className="container mx-auto px-4 py-24 relative z-10">
         <div className="max-w-3xl mx-auto text-center text-white">
-          <div className="mb-6 inline-block">
-            <Award className="h-16 w-16 text-face-gold animate-bounce-slow mx-auto" />
+          <div className="inline-block mb-6">
+            <img 
+              src="/lovable-uploads/d3c7b365-309d-4e28-8670-d9e32511bd89.png" 
+              alt="FACE Awards Logo" 
+              className="h-24 w-auto mx-auto animate-float"
+            />
           </div>
-          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in">
-            <span className="text-transparent bg-clip-text gold-gradient trophy-shine">Celebrating Impact</span>
-            <br />
-            Across the Globe
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
+            Celebrating Global <span className="text-face-gold">Excellence</span>
           </h1>
-          
-          {/* Live Countdown Timer */}
-          <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 mb-8 inline-block">
-            <p className="text-sm mb-2">Voting ends in:</p>
-            <div className="flex justify-center space-x-2 text-xl font-bold">
-              <div className="flex flex-col items-center">
-                <span>{days}</span>
-                <span className="text-xs text-gray-300">days</span>
-              </div>
-              <span>:</span>
-              <div className="flex flex-col items-center">
-                <span>{hours}</span>
-                <span className="text-xs text-gray-300">hrs</span>
-              </div>
-              <span>:</span>
-              <div className="flex flex-col items-center">
-                <span>{minutes}</span>
-                <span className="text-xs text-gray-300">min</span>
-              </div>
-              <span>:</span>
-              <div className="flex flex-col items-center animate-pulse">
-                <span>{seconds}</span>
-                <span className="text-xs text-gray-300">sec</span>
-              </div>
-            </div>
-          </div>
-          
-          <p className="text-xl mb-8 animate-fade-in opacity-90">
-            Celebrating Focus, Achievement, Courage, and Excellence across the globe. 
-            Recognizing outstanding individuals and organizations making remarkable contributions.
+          <p className="text-xl opacity-90 mb-8">
+            Recognizing outstanding achievements in Focus, Achievement, Courage, and Excellence across the world
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-face-gold hover:bg-yellow-500 text-face-blue font-medium">
-              <Link to="/nominees">Current Nominees</Link>
+              <Link to="/nominees">View Current Nominees</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-face-gold text-white hover:bg-face-gold/20">
+            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/20">
               <Link to="/registration">Register for Event</Link>
             </Button>
           </div>
-        </div>
-
-        {/* Stats */}
-        <div 
-          ref={countRef}
-          className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 animate-fade-in"
-        >
-          <div className="bg-white/10 backdrop-blur-sm p-4 md:p-6 rounded-lg text-center">
-            <div className="flex justify-center mb-3">
-              <Trophy className="h-8 w-8 text-face-gold" />
-            </div>
-            <div className="counter-value text-3xl md:text-4xl font-bold text-white" data-target="240">0</div>
-            <p className="text-sm text-gray-200">Award Recipients</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm p-4 md:p-6 rounded-lg text-center">
-            <div className="flex justify-center mb-3">
-              <Users className="h-8 w-8 text-face-gold" />
-            </div>
-            <div className="counter-value text-3xl md:text-4xl font-bold text-white" data-target="50">0</div>
-            <p className="text-sm text-gray-200">Countries Represented</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm p-4 md:p-6 rounded-lg text-center">
-            <div className="flex justify-center mb-3">
-              <Award className="h-8 w-8 text-face-gold" />
-            </div>
-            <div className="counter-value text-3xl md:text-4xl font-bold text-white" data-target="12">0</div>
-            <p className="text-sm text-gray-200">Award Categories</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm p-4 md:p-6 rounded-lg text-center">
-            <div className="flex justify-center mb-3">
-              <TrendingUp className="h-8 w-8 text-face-gold" />
-            </div>
-            <div className="counter-value text-3xl md:text-4xl font-bold text-white" data-target="15">0</div>
-            <p className="text-sm text-gray-200">Years of Excellence</p>
+          
+          {/* Featured Highlight */}
+          <div className="mt-16 bg-white/10 backdrop-blur-sm p-6 rounded-lg border border-white/20 animate-fade-in">
+            <div className="font-medium mb-2 uppercase text-face-gold text-sm tracking-wider">Recent Highlight</div>
+            <h3 className="text-2xl font-serif font-bold mb-2">Voting Now Open for 2025 Awards</h3>
+            <p className="text-white/80 mb-4">
+              Cast your vote for outstanding nominees across 12 categories representing innovation and excellence from around the world.
+            </p>
+            <Link 
+              to="/nominees" 
+              className="inline-flex items-center text-face-gold hover:text-white transition-colors"
+            >
+              Cast Your Vote <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
           </div>
         </div>
       </div>
-
-      {/* Scroll down indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-8 h-12 border-2 border-white rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white rounded-full mt-2 animate-bounce"></div>
-        </div>
+      
+      {/* Wave effect at bottom */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120">
+          <path 
+            fill="white" 
+            fillOpacity="1" 
+            d="M0,96L48,85.3C96,75,192,53,288,53.3C384,53,480,75,576,80C672,85,768,75,864,64C960,53,1056,43,1152,42.7C1248,43,1344,53,1392,58.7L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          ></path>
+        </svg>
       </div>
     </section>
   );
 };
-
-// Custom countdown hook
-function useCountdown(targetDate: Date) {
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
-
-  function calculateTimeLeft(targetDate: Date) {
-    const difference = targetDate.getTime() - new Date().getTime();
-    
-    if (difference <= 0) {
-      return [0, 0, 0, 0];
-    }
-    
-    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-    
-    return [days, hours, minutes, seconds];
-  }
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft(targetDate));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [targetDate]);
-
-  return timeLeft;
-}
 
 export default Hero;
