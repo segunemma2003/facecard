@@ -12,20 +12,13 @@ const Hero = () => {
       {/* Content container */}
       <div className="container mx-auto px-4 py-24 relative z-10">
         <div className="max-w-3xl mx-auto text-center text-white">
-          <div className="inline-block mb-6">
-            <img 
-              src="/lovable-uploads/d3c7b365-309d-4e28-8670-d9e32511bd89.png" 
-              alt="FACE Awards Logo" 
-              className="h-24 w-auto mx-auto animate-float"
-            />
-          </div>
-          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-in">
             Celebrating Global <span className="text-face-gold">Excellence</span>
           </h1>
-          <p className="text-xl opacity-90 mb-8">
+          <p className="text-xl opacity-90 mb-8 animate-slide-in">
             Recognizing outstanding achievements in Focus, Achievement, Courage, and Excellence across the world
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-scale-up">
             <Button asChild size="lg" className="bg-face-gold hover:bg-yellow-500 text-face-blue font-medium">
               <Link to="/nominees">View Current Nominees</Link>
             </Button>
@@ -34,11 +27,11 @@ const Hero = () => {
             </Button>
           </div>
           
-          {/* Featured Highlight */}
-          <div className="mt-16 bg-white/10 backdrop-blur-sm p-6 rounded-lg border border-white/20 animate-fade-in">
+          {/* Featured Highlight with improved visibility */}
+          <div className="mt-16 bg-face-blue/60 backdrop-blur-sm p-6 rounded-lg border border-white/20 animate-fade-in">
             <div className="font-medium mb-2 uppercase text-face-gold text-sm tracking-wider">Recent Highlight</div>
             <h3 className="text-2xl font-serif font-bold mb-2">Voting Now Open for 2025 Awards</h3>
-            <p className="text-white/80 mb-4">
+            <p className="text-white mb-4">
               Cast your vote for outstanding nominees across 12 categories representing innovation and excellence from around the world.
             </p>
             <Link 
