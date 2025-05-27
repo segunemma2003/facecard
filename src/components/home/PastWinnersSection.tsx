@@ -72,14 +72,14 @@ const PastWinnersSection = () => {
   const [selectedYear, setSelectedYear] = useState("2023");
 
   return (
-    <section className="section-padding bg-white" id="past-winners">
+    <section className="section-padding bg-brand-blue/5" id="past-winners">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <div className="inline-block mb-3">
-            <Award className="h-10 w-10 text-face-gold" />
+            <Award className="h-10 w-10 text-brand-blue" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Past Winners</h2>
-          <p className="text-lg text-gray-600">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-brand-grey">Past Winners</h2>
+          <p className="text-lg text-brand-grey/80">
             Celebrating the remarkable individuals and organizations who have previously received 
             the FACE Awards for their outstanding contributions.
           </p>
@@ -89,7 +89,7 @@ const PastWinnersSection = () => {
           {/* Year selector - For mobile */}
           <div className="md:hidden">
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full border-brand-blue">
                 <SelectValue placeholder="Select Year" />
               </SelectTrigger>
               <SelectContent>
@@ -106,9 +106,13 @@ const PastWinnersSection = () => {
           <div className="hidden md:block">
             <Tabs defaultValue="2023" value={selectedYear} onValueChange={setSelectedYear}>
               <div className="flex justify-center mb-8">
-                <TabsList className="bg-gray-100">
+                <TabsList className="bg-brand-white border border-brand-blue/20">
                   {years.map((year) => (
-                    <TabsTrigger key={year} value={year} className="px-8">
+                    <TabsTrigger 
+                      key={year} 
+                      value={year} 
+                      className="px-8 data-[state=active]:bg-brand-blue data-[state=active]:text-brand-white"
+                    >
                       {year}
                     </TabsTrigger>
                   ))}
@@ -138,7 +142,7 @@ const PastWinnersSection = () => {
         </div>
 
         <div className="text-center mt-10">
-          <Button asChild variant="outline" className="border-face-blue text-face-blue hover:bg-face-blue hover:text-white">
+          <Button asChild variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-brand-white">
             <Link to="/past-winners" className="flex items-center gap-2">
               View All Past Winners
               <ChevronDown className="h-4 w-4" />

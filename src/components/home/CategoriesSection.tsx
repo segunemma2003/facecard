@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Award } from 'lucide-react';
@@ -12,7 +11,7 @@ import {
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// Enhanced categories data with detailed descriptions
+// Enhanced categories data with brand colors only
 const categories = [
   {
     id: 1,
@@ -20,8 +19,8 @@ const categories = [
     description: "Honoring breakthrough technological advancements that transform industries and improve lives.",
     icon: "💻",
     nominees: 28,
-    color: "bg-blue-50 border-blue-200",
-    textColor: "text-blue-700",
+    color: "bg-brand-blue/10 border-brand-blue/30",
+    textColor: "text-brand-grey",
     criteria: [
       "Demonstrated significant technological breakthroughs within the past year",
       "Created solutions that address real-world challenges with measurable impact",
@@ -35,8 +34,8 @@ const categories = [
     description: "Recognizing visionary leaders who inspire teams and drive organizational success.",
     icon: "🏆",
     nominees: 42,
-    color: "bg-green-50 border-green-200",
-    textColor: "text-green-700",
+    color: "bg-brand-blue/10 border-brand-blue/30",
+    textColor: "text-brand-grey",
     criteria: [
       "Led organizations or teams to exceptional performance and achievement",
       "Demonstrated ethical leadership and integrity in decision-making",
@@ -50,8 +49,8 @@ const categories = [
     description: "Celebrating individuals and organizations creating positive social change and addressing global challenges.",
     icon: "❤️",
     nominees: 35,
-    color: "bg-red-50 border-red-200",
-    textColor: "text-red-700",
+    color: "bg-brand-blue/10 border-brand-blue/30",
+    textColor: "text-brand-grey",
     criteria: [
       "Implemented initiatives that directly improved the quality of life for vulnerable populations",
       "Demonstrated sustainable approaches to addressing humanitarian challenges",
@@ -65,8 +64,8 @@ const categories = [
     description: "Honoring initiatives that promote environmental responsibility and sustainable business practices.",
     icon: "🌱",
     nominees: 31,
-    color: "bg-emerald-50 border-emerald-200",
-    textColor: "text-emerald-700",
+    color: "bg-brand-blue/10 border-brand-blue/30",
+    textColor: "text-brand-grey",
     criteria: [
       "Pioneered sustainable practices that significantly reduce environmental impact",
       "Demonstrated measurable improvements in resource efficiency and conservation",
@@ -80,8 +79,8 @@ const categories = [
     description: "Recognizing exceptional talent and innovation in visual arts, performing arts, and creative expression.",
     icon: "🎨",
     nominees: 38,
-    color: "bg-purple-50 border-purple-200",
-    textColor: "text-purple-700",
+    color: "bg-brand-blue/10 border-brand-blue/30",
+    textColor: "text-brand-grey",
     criteria: [
       "Produced creative works that demonstrate exceptional originality and artistic excellence",
       "Used creative expression to challenge perspectives and inspire dialogue",
@@ -95,8 +94,8 @@ const categories = [
     description: "Celebrating outstanding contributions to education, learning methodologies, and knowledge sharing.",
     icon: "📚",
     nominees: 27,
-    color: "bg-yellow-50 border-yellow-200",
-    textColor: "text-yellow-700",
+    color: "bg-brand-blue/10 border-brand-blue/30",
+    textColor: "text-brand-grey",
     criteria: [
       "Developed innovative teaching methods that measurably improve learning outcomes",
       "Expanded educational access to underserved or marginalized communities",
@@ -126,14 +125,14 @@ const CategoriesSection = () => {
   };
 
   return (
-    <section className="section-padding bg-gray-50" id="categories">
+    <section className="section-padding bg-brand-white" id="categories">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <div className="inline-block mb-3">
-            <Award className="h-10 w-10 text-face-gold" />
+            <Award className="h-10 w-10 text-brand-blue" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Award Categories</h2>
-          <p className="text-lg text-gray-600">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-brand-grey">Award Categories</h2>
+          <p className="text-lg text-brand-grey/80">
             The FACE Awards recognize excellence across a diverse range of categories, 
             each representing a vital area of human achievement and innovation.
           </p>
@@ -161,20 +160,20 @@ const CategoriesSection = () => {
                       <h3 className={`text-xl font-serif font-semibold mb-2 ${category.textColor}`}>
                         {category.name}
                       </h3>
-                      <p className="text-gray-600 mb-4">{category.description}</p>
+                      <p className="text-brand-grey/70 mb-4">{category.description}</p>
                       
                       <div className="mt-4">
                         <button 
                           onClick={() => toggleCategory(category.id)}
-                          className={`text-sm font-medium ${category.textColor} hover:underline flex items-center mb-2`}
+                          className={`text-sm font-medium text-brand-blue hover:underline flex items-center mb-2`}
                         >
                           {expandedCategory === category.id ? "Hide Criteria" : "View Criteria"}
                         </button>
                         
                         {expandedCategory === category.id && (
-                          <div className="mt-3 bg-white/80 p-3 rounded-md text-left animate-fade-in">
-                            <h4 className="font-medium mb-2">Award Criteria:</h4>
-                            <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                          <div className="mt-3 bg-brand-white/80 p-3 rounded-md text-left animate-fade-in border border-brand-blue/20">
+                            <h4 className="font-medium mb-2 text-brand-grey">Award Criteria:</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm text-brand-grey/80">
                               {category.criteria.map((criterion, idx) => (
                                 <li key={idx}>{criterion}</li>
                               ))}
@@ -184,7 +183,7 @@ const CategoriesSection = () => {
                       </div>
                       
                       <div className="mt-4">
-                        <Badge variant="outline" className="bg-white">
+                        <Badge variant="outline" className="bg-brand-white border-brand-blue text-brand-blue">
                           {category.nominees} Nominees
                         </Badge>
                       </div>
@@ -192,7 +191,7 @@ const CategoriesSection = () => {
                     <CardFooter className="p-4 pt-0">
                       <Link 
                         to="/nominees" 
-                        className={`text-sm font-medium ${category.textColor} hover:underline`}
+                        className={`text-sm font-medium text-brand-blue hover:underline`}
                       >
                         View Nominees →
                       </Link>

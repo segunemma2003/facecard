@@ -20,11 +20,11 @@ export default {
 		},
 		extend: {
 			colors: {
-				border: 'hsl(var(--border))',
-				input: 'hsl(var(--input))',
-				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
+				border: '#87CEEB',
+				input: '#87CEEB',
+				ring: '#87CEEB',
+				background: '#FFFFFF',
+				foreground: '#333333',
 				primary: {
 					DEFAULT: '#87CEEB',
 					foreground: '#FFFFFF'
@@ -34,36 +34,36 @@ export default {
 					foreground: '#333333'
 				},
 				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
+					DEFAULT: '#333333',
+					foreground: '#FFFFFF'
 				},
 				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					DEFAULT: '#87CEEB',
+					foreground: '#333333'
 				},
 				accent: {
 					DEFAULT: '#333333',
 					foreground: '#FFFFFF'
 				},
 				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
+					DEFAULT: '#FFFFFF',
+					foreground: '#333333'
 				},
 				card: {
-					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))'
+					DEFAULT: '#FFFFFF',
+					foreground: '#333333'
 				},
 				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+					DEFAULT: '#FFFFFF',
+					foreground: '#333333',
+					primary: '#87CEEB',
+					'primary-foreground': '#FFFFFF',
+					accent: '#87CEEB',
+					'accent-foreground': '#333333',
+					border: '#87CEEB',
+					ring: '#87CEEB'
 				},
-				// FACE Brand Colors
+				// FACE Brand Colors - ONLY THESE
 				brand: {
 					blue: '#87CEEB',      // Sky blue - primary standout color
 					white: '#FFFFFF',     // White - primary color
@@ -78,8 +78,8 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			fontFamily: {
-				serif: ['Playfair Display', 'serif'],
-				sans: ['Open Sans', 'sans-serif'],
+				serif: ['Clash Display', 'serif'],
+				sans: ['Manrope', 'sans-serif'],
 			},
 			keyframes: {
 				'accordion-down': {

@@ -42,14 +42,14 @@ const galleryEvents = [
 
 const GallerySection = () => {
   return (
-    <section className="section-padding bg-gray-50" id="gallery">
+    <section className="section-padding bg-brand-white" id="gallery">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <div className="inline-block mb-3">
-            <Award className="h-10 w-10 text-face-gold" />
+            <Award className="h-10 w-10 text-brand-blue" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Event Gallery</h2>
-          <p className="text-lg text-gray-600">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-brand-grey">Event Gallery</h2>
+          <p className="text-lg text-brand-grey/80">
             Explore moments from our past ceremonies and events that celebrate excellence and achievement across the globe.
           </p>
         </div>
@@ -61,7 +61,7 @@ const GallerySection = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button asChild className="bg-face-blue hover:bg-blue-800">
+          <Button asChild className="bg-brand-blue hover:bg-brand-grey text-brand-white">
             <Link to="/gallery">View Complete Gallery</Link>
           </Button>
         </div>
