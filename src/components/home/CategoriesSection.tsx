@@ -21,7 +21,7 @@ const categories = [
     nominees: 28,
     color: "face-card",
     textColor: "text-face-grey",
-    imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af2176", // AI/Tech innovation
+    imageUrl: "https://images.pexels.com/photos/3782235/pexels-photo-3782235.jpeg", // AI/Tech innovation
     criteria: [
       "Demonstrated significant technological breakthroughs within the past year",
       "Created solutions that address real-world challenges with measurable impact",
@@ -101,7 +101,7 @@ const categories = [
     nominees: 27,
     color: "face-card",
     textColor: "text-face-grey",
-    imageUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0bc644", // Education/classroom
+    imageUrl: "https://images.pexels.com/photos/1181643/pexels-photo-1181643.jpeg", // Education/classroom
     criteria: [
       "Developed innovative teaching methods that measurably improve learning outcomes",
       "Expanded educational access to underserved or marginalized communities",

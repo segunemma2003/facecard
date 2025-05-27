@@ -1,79 +1,80 @@
-
 import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Image, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Image, X, ChevronLeft, ChevronRight, Calendar, MapPin, Users, Award } from 'lucide-react';
 
 // Sample gallery data
 const galleryData = {
   "2023": [
     {
       id: "2023-ceremony",
-      title: "2023 Award Ceremony",
+      title: "2023 Global Award Ceremony",
       location: "New York City",
       date: "November 20, 2023",
-      description: "The 15th Annual FACE Awards ceremony honoring exceptional achievements from around the world.",
+      description: "The prestigious 15th Annual FACE Awards ceremony celebrating exceptional achievements from around the world.",
+      attendees: "500+ Global Leaders",
+      highlights: "12 Categories • 45 Nominees • 15 Winners",
       images: [
         {
           id: 1,
-          url: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
-          caption: "Opening of the ceremony with welcome address"
+          url: "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg",
+          caption: "Grand opening ceremony with welcome address from FACE Awards Chairman"
         },
         {
           id: 2,
-          url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-          caption: "Technology Innovation Award presentation"
+          url: "https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg",
+          caption: "Technology Innovation Award presentation to Dr. Sarah Chen"
         },
         {
           id: 3,
-          url: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678",
-          caption: "Dr. Sarah Chen accepting her award"
+          url: "https://images.pexels.com/photos/1181391/pexels-photo-1181391.jpeg",
+          caption: "Educational Excellence winner delivering inspiring acceptance speech"
         },
         {
           id: 4,
-          url: "https://images.unsplash.com/photo-1528605248644-14dd04022da1",
-          caption: "Performers at the ceremony"
+          url: "https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg",
+          caption: "Cultural performance celebrating global diversity and excellence"
         },
         {
           id: 5,
-          url: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0",
-          caption: "Networking session during the gala dinner"
+          url: "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg",
+          caption: "VIP networking reception with international dignitaries"
         },
         {
           id: 6,
-          url: "https://images.unsplash.com/photo-1559445368-b8a993676d7a",
-          caption: "Award recipients group photo"
+          url: "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg",
+          caption: "Award recipients group photo celebrating global excellence"
         }
       ]
     },
     {
       id: "2023-tech-summit",
-      title: "Tech Innovation Summit",
+      title: "Technology Innovation Summit",
       location: "San Francisco",
       date: "June 15, 2023",
-      description: "A gathering of nominees and past winners in the Technology Innovation category to showcase their groundbreaking work.",
+      description: "An exclusive gathering of nominees and past winners showcasing groundbreaking technological innovations.",
+      attendees: "200+ Tech Leaders",
+      highlights: "15 Innovations • 8 Keynotes • 3 Panel Discussions",
       images: [
         {
           id: 7,
-          url: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-          caption: "Keynote presentation on AI advancements"
+          url: "https://images.pexels.com/photos/2004161/pexels-photo-2004161.jpeg",
+          caption: "Keynote presentation on AI advancements in healthcare diagnostics"
         },
         {
           id: 8,
-          url: "https://images.unsplash.com/photo-1587394171916-a46b5cbaeda9",
-          caption: "Panel discussion with industry leaders"
+          url: "https://images.pexels.com/photos/1181643/pexels-photo-1181643.jpeg",
+          caption: "Interactive panel discussion with quantum computing pioneers"
         },
         {
           id: 9,
-          url: "https://images.unsplash.com/photo-1600880292089-90a7e086ee0c",
-          caption: "Product demonstration by HealthTech Innovations"
+          url: "https://images.pexels.com/photos/3861458/pexels-photo-3861458.jpeg",
+          caption: "Live demonstration of breakthrough water purification technology"
         },
         {
           id: 10,
-          url: "https://images.unsplash.com/photo-1696347324423-94d272ac5b3c",
-          caption: "Networking break between sessions"
+          url: "https://images.pexels.com/photos/3845163/pexels-photo-3845163.jpeg",
+          caption: "Networking session connecting innovators from around the globe"
         }
       ]
     }
@@ -81,35 +82,37 @@ const galleryData = {
   "2022": [
     {
       id: "2022-ceremony",
-      title: "2022 Award Ceremony",
+      title: "2022 Global Award Ceremony",
       location: "Dubai",
       date: "November 18, 2022",
-      description: "A prestigious ceremony recognizing excellence across multiple categories with international representation.",
+      description: "A spectacular ceremony recognizing excellence across multiple categories with unprecedented international representation.",
+      attendees: "600+ International Guests",
+      highlights: "10 Categories • 38 Nominees • 12 Winners",
       images: [
         {
           id: 11,
-          url: "https://images.unsplash.com/photo-1496307653780-42ee777d4833",
-          caption: "Dubai venue for the 2022 FACE Awards"
+          url: "https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg",
+          caption: "Magnificent Dubai venue illuminated for the FACE Awards ceremony"
         },
         {
           id: 12,
-          url: "https://images.unsplash.com/photo-1560177112-fbfd5fde9566",
-          caption: "GlobalEdu Foundation receiving their award"
+          url: "https://images.pexels.com/photos/3760263/pexels-photo-3760263.jpeg",
+          caption: "GlobalEdu Foundation receiving Educational Excellence Award"
         },
         {
           id: 13,
-          url: "https://images.unsplash.com/photo-1562788869-1dd152686326",
-          caption: "Entertainment segment of the ceremony"
+          url: "https://images.pexels.com/photos/1181677/pexels-photo-1181677.jpeg",
+          caption: "Spectacular entertainment segment featuring international artists"
         },
         {
           id: 14,
-          url: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04",
-          caption: "Maria Santos delivering her acceptance speech"
+          url: "https://images.pexels.com/photos/1181247/pexels-photo-1181247.jpeg",
+          caption: "Humanitarian Impact winner Maria Santos' moving acceptance speech"
         },
         {
           id: 15,
-          url: "https://images.unsplash.com/photo-1561489413-985b06da5bee",
-          caption: "Red carpet arrivals"
+          url: "https://images.pexels.com/photos/1181376/pexels-photo-1181376.jpeg",
+          caption: "Elegant red carpet arrivals showcasing global fashion"
         }
       ]
     }
@@ -117,30 +120,32 @@ const galleryData = {
   "2021": [
     {
       id: "2021-ceremony",
-      title: "2021 Award Ceremony",
+      title: "2021 Global Award Ceremony",
       location: "London",
       date: "November 12, 2021",
-      description: "The first post-pandemic in-person ceremony celebrating resilience and innovation during challenging times.",
+      description: "A groundbreaking hybrid ceremony celebrating resilience and innovation during unprecedented global challenges.",
+      attendees: "400+ Attendees (In-person & Virtual)",
+      highlights: "9 Categories • 32 Nominees • 11 Winners",
       images: [
         {
-          id: 16,
-          url: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3",
-          caption: "London venue illuminated for the event"
-        },
-        {
-          id: 17,
-          url: "https://images.unsplash.com/photo-1505236858219-8359eb29e329",
-          caption: "Robert Kiyoshi's acceptance speech"
-        },
-        {
           id: 18,
-          url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87",
-          caption: "Award presentation for Healthcare Innovation"
+          url: "https://images.pexels.com/photos/1190296/pexels-photo-1190296.jpeg",
+          caption: "Historic London venue beautifully illuminated for the hybrid ceremony"
         },
         {
           id: 19,
-          url: "https://images.unsplash.com/photo-1515169067868-5387ec356754",
-          caption: "Guests attending the gala dinner"
+          url: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg",
+          caption: "Robert Kiyoshi's inspiring Leadership Excellence acceptance speech"
+        },
+        {
+          id: 20,
+          url: "https://images.pexels.com/photos/1181409/pexels-photo-1181409.jpeg",
+          caption: "Virtual participants joining from around the world"
+        },
+        {
+          id: 21,
+          url: "https://images.pexels.com/photos/1181304/pexels-photo-1181304.jpeg",
+          caption: "Socially distanced gala dinner celebrating global achievement"
         }
       ]
     }
@@ -186,125 +191,239 @@ const Gallery = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
-      
-      {/* Hero section */}
-      <section className="relative py-32 bg-face-blue">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1496307653780-42ee777d4833')] bg-cover bg-center opacity-20"></div>
-        <div className="relative container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <Image className="h-16 w-16 text-face-gold mx-auto mb-6" />
-            <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4 text-white">Event Gallery</h1>
-            <p className="text-xl text-gray-200">
-              Browse through memories of FACE Award ceremonies and events from around the world.
+      {/* Hero section with FACE brand colors and enhanced visibility */}
+      <section className="relative py-32 bg-face-grey overflow-hidden">
+        {/* Background hero image with stronger overlay */}
+        <div className="absolute inset-0">
+          <img 
+            src="https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
+            alt="Awards ceremony background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-face-sky-blue/95 via-face-sky-blue-dark/95 to-face-grey/95"></div>
+        </div>
+        
+        {/* Decorative elements with better visibility */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-20 left-10 w-32 h-32 border-4 border-white rounded-full animate-pulse"></div>
+          <div className="absolute top-40 right-20 w-24 h-24 border-4 border-white transform rotate-45 animate-bounce"></div>
+          <div className="absolute bottom-40 left-20 w-16 h-16 bg-white rounded-full animate-pulse"></div>
+          <div className="absolute top-60 right-40 w-20 h-20 border-2 border-white transform rotate-12 animate-spin" style={{animationDuration: '8s'}}></div>
+        </div>
+        
+        <div className="relative container mx-auto px-4 z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Icon with stronger FACE brand styling */}
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full mb-8 shadow-2xl">
+              <Image className="h-12 w-12 text-face-sky-blue" />
+            </div>
+            
+            {/* Main heading with stronger contrast */}
+            <h1 className="text-6xl md:text-7xl font-serif font-bold mb-6 text-white">
+              Event <span className="text-white">Gallery</span>
+            </h1>
+            
+            {/* Subtitle with stronger visibility */}
+            <p className="text-2xl text-white mb-8 font-semibold">
+              Experience the grandeur and inspiration of FACE Award ceremonies from around the world
             </p>
+            
+            {/* Stats with stronger contrast */}
+            <div className="flex flex-wrap justify-center gap-6 text-lg text-white">
+              <div className="flex items-center gap-3 bg-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-white/60">
+                <Award className="h-6 w-6 text-white" />
+                <span className="font-bold">15+ Ceremonies</span>
+              </div>
+              <div className="flex items-center gap-3 bg-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-white/60">
+                <Users className="h-6 w-6 text-white" />
+                <span className="font-bold">5000+ Attendees</span>
+              </div>
+              <div className="flex items-center gap-3 bg-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-white/60">
+                <MapPin className="h-6 w-6 text-white" />
+                <span className="font-bold">12+ Countries</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
       
-      {/* Gallery content */}
-      <section className="py-16">
+      {/* Year selector with FACE brand styling */}
+      <section className="py-16 bg-face-white">
         <div className="container mx-auto px-4">
-          <Tabs defaultValue="2023" value={selectedYear} onValueChange={setSelectedYear} className="w-full">
-            <div className="flex justify-center mb-12">
-              <TabsList className="bg-white">
-                {years.map((year) => (
-                  <TabsTrigger key={year} value={year} className="px-8">
-                    {year} Events
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+          <div className="flex justify-center mb-16">
+            <div className="bg-white shadow-2xl border-4 border-face-sky-blue/20 p-3 rounded-2xl">
+              {years.map((year) => (
+                <button
+                  key={year}
+                  onClick={() => setSelectedYear(year)}
+                  className={`px-8 py-4 mx-2 text-xl font-bold rounded-xl transition-all duration-300 font-serif ${
+                    selectedYear === year
+                      ? 'bg-face-sky-blue text-white shadow-xl transform scale-105'
+                      : 'bg-face-white text-face-grey hover:bg-face-sky-blue/10 hover:text-face-sky-blue'
+                  }`}
+                >
+                  {year} Events
+                </button>
+              ))}
             </div>
-            
-            {years.map((year) => (
-              <TabsContent key={year} value={year}>
-                {galleryData[year as keyof typeof galleryData].map((event, eventIndex) => (
-                  <div key={event.id} className="mb-16">
-                    <h2 className="text-2xl font-serif font-bold mb-2">
-                      {event.title}
-                    </h2>
-                    <div className="flex flex-wrap items-center text-sm text-gray-600 mb-4">
-                      <span>{event.location}</span>
-                      <span className="mx-2">•</span>
-                      <span>{event.date}</span>
-                    </div>
-                    <p className="text-gray-700 mb-6">{event.description}</p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {event.images.map((image, imageIndex) => (
-                        <div 
-                          key={image.id} 
-                          className="cursor-pointer group relative aspect-[4/3] overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow"
-                          onClick={() => openLightbox(eventIndex, imageIndex)}
-                        >
-                          <img 
-                            src={`${image.url}?w=600&h=400&fit=crop`}
-                            alt={image.caption}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors">
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="bg-white/80 backdrop-blur-sm p-2 rounded-full">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-face-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+          </div>
+          
+          {/* Gallery content with FACE brand styling */}
+          <div className="space-y-24">
+            {galleryData[selectedYear as keyof typeof galleryData].map((event, eventIndex) => (
+              <div key={event.id} className="relative">
+                {/* Event Header with FACE brand styling */}
+                <div className="text-center mb-16">
+                  <div className="inline-block bg-face-sky-blue px-8 py-3 rounded-full mb-6 shadow-lg">
+                    <div className="bg-white text-face-sky-blue border-0 text-lg font-bold px-4 py-1 rounded-full">
+                      {selectedYear}
                     </div>
                   </div>
-                ))}
-              </TabsContent>
+                  <h2 className="text-5xl font-serif font-bold mb-6 text-face-grey">
+                    {event.title}
+                  </h2>
+                  <div className="flex flex-wrap justify-center items-center gap-8 text-face-grey mb-6 text-lg">
+                    <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-lg border border-face-sky-blue/20">
+                      <MapPin className="h-6 w-6 text-face-sky-blue" />
+                      <span className="font-bold">{event.location}</span>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-lg border border-face-sky-blue/20">
+                      <Calendar className="h-6 w-6 text-face-sky-blue" />
+                      <span className="font-bold">{event.date}</span>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-lg border border-face-sky-blue/20">
+                      <Users className="h-6 w-6 text-face-sky-blue" />
+                      <span className="font-bold">{event.attendees}</span>
+                    </div>
+                  </div>
+                  <p className="text-xl text-face-grey max-w-4xl mx-auto mb-6 leading-relaxed">
+                    {event.description}
+                  </p>
+                  <div className="inline-block bg-face-sky-blue/10 border-2 border-face-sky-blue/30 px-8 py-4 rounded-full">
+                    <span className="text-face-sky-blue font-bold text-lg">{event.highlights}</span>
+                  </div>
+                </div>
+                
+                {/* Image Grid with FACE brand styling */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                  {event.images.map((image, imageIndex) => (
+                    <div 
+                      key={image.id} 
+                      className="group cursor-pointer relative aspect-[4/3] overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-110 border-4 border-white"
+                      onClick={() => openLightbox(eventIndex, imageIndex)}
+                    >
+                      <img 
+                        src={`${image.url}?w=600&h=400&fit=crop`}
+                        alt={image.caption}
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-125"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-face-grey/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute bottom-0 left-0 right-0 p-8">
+                          <p className="text-white text-lg font-bold leading-relaxed">
+                            {image.caption}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="bg-white/95 backdrop-blur-sm p-4 rounded-full shadow-2xl">
+                          <Image className="h-6 w-6 text-face-sky-blue" />
+                        </div>
+                      </div>
+                      {/* Image number indicator with FACE branding */}
+                      <div className="absolute top-6 left-6">
+                        <div className="bg-face-sky-blue text-white px-4 py-2 rounded-full text-lg font-bold shadow-xl">
+                          {imageIndex + 1} of {event.images.length}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ))}
-          </Tabs>
+          </div>
         </div>
       </section>
 
-      {/* Lightbox */}
+      {/* Enhanced Lightbox */}
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-black/98 backdrop-blur-md flex items-center justify-center">
           <button 
-            className="absolute top-6 right-6 text-white hover:text-gray-300 p-2"
+            className="absolute top-8 right-8 text-white hover:text-yellow-400 p-6 bg-black/60 hover:bg-black/80 rounded-full backdrop-blur-sm transition-all duration-300 shadow-2xl border-2 border-white/20 hover:border-yellow-400"
             onClick={closeLightbox}
           >
-            <X className="h-8 w-8" />
+            <X className="h-10 w-10" />
           </button>
           
           <button 
-            className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-2"
+            className="absolute left-8 top-1/2 -translate-y-1/2 text-white hover:text-yellow-400 p-8 bg-black/60 hover:bg-black/80 rounded-full backdrop-blur-sm transition-all duration-300 shadow-2xl border-2 border-white/20 hover:border-yellow-400"
             onClick={goToPrevImage}
           >
-            <ChevronLeft className="h-10 w-10" />
+            <ChevronLeft className="h-12 w-12" />
           </button>
           
           <button 
-            className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-2"
+            className="absolute right-8 top-1/2 -translate-y-1/2 text-white hover:text-yellow-400 p-8 bg-black/60 hover:bg-black/80 rounded-full backdrop-blur-sm transition-all duration-300 shadow-2xl border-2 border-white/20 hover:border-yellow-400"
             onClick={goToNextImage}
           >
-            <ChevronRight className="h-10 w-10" />
+            <ChevronRight className="h-12 w-12" />
           </button>
           
-          <div className="w-full max-w-5xl">
+          <div className="w-full max-w-7xl mx-8">
             <div className="relative">
               <img 
                 src={galleryData[selectedYear as keyof typeof galleryData][currentEventIndex].images[currentImageIndex].url} 
                 alt={galleryData[selectedYear as keyof typeof galleryData][currentEventIndex].images[currentImageIndex].caption}
-                className="max-h-[80vh] mx-auto"
+                className="max-h-[85vh] mx-auto rounded-3xl shadow-2xl border-4 border-white/20"
               />
               
-              <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-4 text-white">
-                <p>{galleryData[selectedYear as keyof typeof galleryData][currentEventIndex].images[currentImageIndex].caption}</p>
-                <p className="text-sm text-gray-300 mt-1">
-                  {currentImageIndex + 1} of {galleryData[selectedYear as keyof typeof galleryData][currentEventIndex].images.length}
-                </p>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 to-transparent p-12 rounded-b-3xl">
+                <div className="max-w-5xl">
+                  <h3 className="text-white text-4xl font-black mb-6">
+                    {galleryData[selectedYear as keyof typeof galleryData][currentEventIndex].title}
+                  </h3>
+                  <p className="text-white/95 text-2xl mb-6 leading-relaxed font-medium">
+                    {galleryData[selectedYear as keyof typeof galleryData][currentEventIndex].images[currentImageIndex].caption}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-8 text-white/90 text-xl">
+                      <span className="font-bold">{galleryData[selectedYear as keyof typeof galleryData][currentEventIndex].location}</span>
+                      <span className="text-yellow-400">•</span>
+                      <span className="font-bold">{galleryData[selectedYear as keyof typeof galleryData][currentEventIndex].date}</span>
+                    </div>
+                    <div className="text-white font-black text-xl bg-white/20 px-6 py-3 rounded-2xl border-2 border-white/30">
+                      {currentImageIndex + 1} of {galleryData[selectedYear as keyof typeof galleryData][currentEventIndex].images.length}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
+      
+      {/* Call to Action with FACE brand styling */}
+      <section className="py-24 bg-gradient-to-r from-face-sky-blue via-face-sky-blue-dark to-face-grey">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-5xl font-serif font-bold mb-8 text-white">
+              Be Part of Our Next Celebration
+            </h2>
+            <p className="text-2xl text-white/90 mb-12 leading-relaxed">
+              Join us at upcoming FACE Awards events and become part of our global community celebrating excellence.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <button className="bg-white text-face-sky-blue hover:bg-face-sky-blue hover:text-white border-4 border-white hover:border-white shadow-2xl text-xl font-bold py-6 px-12 rounded-full transform hover:scale-105 transition-all duration-300">
+                Register for Next Event
+              </button>
+              <button className="border-4 border-white bg-transparent text-white hover:bg-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-6 px-12 rounded-full transform hover:scale-105 transition-all duration-300">
+                View Current Nominees
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
       
       <Footer />
     </div>

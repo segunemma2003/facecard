@@ -99,22 +99,18 @@ const AboutSection = () => {
             </div>
           </div>
 
-          <div className="relative">
-            <div className="absolute -top-8 -left-8 w-32 h-32 bg-face-sky-blue/20 rounded-full animate-float"></div>
-            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-face-grey/20 rounded-full animate-float"></div>
-            <div className="relative z-10 rounded-lg overflow-hidden shadow-xl animate-scale-up face-card-hover">
+            <div className="relative z-10 rounded-lg overflow-hidden shadow-xl animate-scale-up">
               <img 
-                src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&q=80" 
+                src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1470&auto=format&fit=crop" 
                 alt="FACE Awards Ceremony" 
                 className="w-full h-full object-cover"
               />
-              <div className="face-overlay flex items-end">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
                 <div className="p-6">
-                  <p className="text-face-white text-lg font-clash">Celebrating excellence across borders and industries</p>
+                  <p className="text-brand-white text-lg font-serif">Celebrating excellence across borders and industries</p>
                 </div>
               </div>
             </div>
-          </div>
         </div>
       </div>
     </section>
