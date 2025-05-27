@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Award } from 'lucide-react';
@@ -14,6 +14,11 @@ import { categoriesData, upcomingVotes } from '@/components/categories/categoryD
 const Categories = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("all");
+  
+  // Scroll to top on component mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   // Get all unique regions from the categories
   const regions = Array.from(new Set(categoriesData.map(cat => cat.region)));
@@ -36,18 +41,18 @@ const Categories = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <section className="py-32 bg-gradient-to-b from-face-navy to-gray-50">
+      <section className="py-32 bg-gradient-to-b from-face-blue to-face-light">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-16">
-            <Award className="h-16 w-16 text-face-gold mx-auto mb-4" />
+            <Award className="h-16 w-16 text-white mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6 text-white">
-              Award <span className="text-face-gold">Categories</span>
+              Award <span className="text-face-grey">Categories</span>
             </h1>
-            <p className="text-xl text-gray-200">
+            <p className="text-xl text-white">
               Discover the diverse categories recognizing excellence across industries and borders.
               {!isAuthenticated && (
-                <span className="block mt-4 text-face-burgundy font-medium">
-                  Please <button onClick={handleLogin} className="underline text-face-gold">login</button> to vote for nominees.
+                <span className="block mt-4 text-face-grey font-medium">
+                  Please <button onClick={handleLogin} className="underline text-white">login</button> to vote for nominees.
                 </span>
               )}
             </p>
@@ -57,14 +62,14 @@ const Categories = () => {
           <div className="max-w-5xl mx-auto mb-12">
             <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="bg-white/20 mx-auto mb-8 overflow-x-auto flex w-full md:w-auto">
-                <TabsTrigger value="all" className="text-white data-[state=active]:bg-face-gold data-[state=active]:text-face-blue">
+                <TabsTrigger value="all" className="text-white data-[state=active]:bg-face-blue data-[state=active]:text-white">
                   All Regions
                 </TabsTrigger>
                 {regions.map(region => (
                   <TabsTrigger 
                     key={region} 
                     value={region}
-                    className="text-white data-[state=active]:bg-face-gold data-[state=active]:text-face-blue"
+                    className="text-white data-[state=active]:bg-face-blue data-[state=active]:text-white"
                   >
                     {region}
                   </TabsTrigger>

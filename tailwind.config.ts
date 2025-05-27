@@ -26,12 +26,12 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#87CEEB',
+					foreground: '#FFFFFF'
 				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
+					DEFAULT: '#FFFFFF',
+					foreground: '#333333'
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
@@ -42,8 +42,8 @@ export default {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
+					DEFAULT: '#333333',
+					foreground: '#FFFFFF'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -63,13 +63,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom colors for FACE
+				// Updated FACE brand colors
 				face: {
-					blue: '#0a2342',
-					gold: '#f2c94c',
-					burgundy: '#7d1d3f',
-					navy: '#112d4e',
-					silver: '#e0e0e0'
+					blue: '#87CEEB',  // Sky blue primary
+					white: '#FFFFFF', // White secondary
+					grey: '#333333',  // Grey accent
+					navy: '#4682B4',  // Darker blue for depth
+					light: '#F0F8FF'  // Very light blue for backgrounds
 				}
 			},
 			borderRadius: {

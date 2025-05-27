@@ -5,6 +5,10 @@ import { Award, Mail, MapPin, Users } from 'lucide-react';
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
+  const handleNavigation = (path: string) => {
+    setTimeout(() => window.scrollTo(0, 0), 100);
+  };
+
   return (
     <footer className="bg-face-blue text-white">
       <div className="container mx-auto px-4 py-12">
@@ -13,13 +17,13 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex flex-col items-center md:items-start space-y-3 mb-4">
               <img 
-                src="/lovable-uploads/d3c7b365-309d-4e28-8670-d9e32511bd89.png" 
+                src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
                 alt="FACE Awards Logo" 
                 className="h-16 w-auto mb-2"
               />
               <span className="font-serif font-bold text-xl">FACE Awards</span>
             </div>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-gray-200">
               Celebrating Focus, Achievement, Courage, and Excellence across the globe. 
               Recognizing outstanding individuals and organizations making an impact.
             </p>
@@ -52,27 +56,27 @@ const Footer = () => {
             <h3 className="text-lg font-serif font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-gray-300 hover:text-face-gold transition-colors">
+                <Link to="/" className="text-gray-200 hover:text-white transition-colors" onClick={() => handleNavigation('/')}>
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/nominees" className="text-gray-300 hover:text-face-gold transition-colors">
+                <Link to="/nominees" className="text-gray-200 hover:text-white transition-colors" onClick={() => handleNavigation('/nominees')}>
                   Current Nominees
                 </Link>
               </li>
               <li>
-                <Link to="/past-winners" className="text-gray-300 hover:text-face-gold transition-colors">
+                <Link to="/past-winners" className="text-gray-200 hover:text-white transition-colors" onClick={() => handleNavigation('/past-winners')}>
                   Past Winners
                 </Link>
               </li>
               <li>
-                <Link to="/gallery" className="text-gray-300 hover:text-face-gold transition-colors">
+                <Link to="/gallery" className="text-gray-200 hover:text-white transition-colors" onClick={() => handleNavigation('/gallery')}>
                   Gallery
                 </Link>
               </li>
               <li>
-                <Link to="/registration" className="text-gray-300 hover:text-face-gold transition-colors">
+                <Link to="/registration" className="text-gray-200 hover:text-white transition-colors" onClick={() => handleNavigation('/registration')}>
                   Registration
                 </Link>
               </li>
@@ -84,20 +88,20 @@ const Footer = () => {
             <h3 className="text-lg font-serif font-bold mb-4">Contact Us</h3>
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
-                <MapPin className="h-5 w-5 text-face-gold shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-300">
+                <MapPin className="h-5 w-5 text-white shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-200">
                   Global Headquarters, 123 Recognition Avenue, New York, NY 10001
                 </span>
               </div>
               <div className="flex items-center space-x-3">
-                <Mail className="h-5 w-5 text-face-gold shrink-0" />
-                <a href="mailto:info@faceawards.org" className="text-sm text-gray-300 hover:text-face-gold">
+                <Mail className="h-5 w-5 text-white shrink-0" />
+                <a href="mailto:info@faceawards.org" className="text-sm text-gray-200 hover:text-white">
                   info@faceawards.org
                 </a>
               </div>
               <div className="flex items-center space-x-3">
-                <Users className="h-5 w-5 text-face-gold shrink-0" />
-                <span className="text-sm text-gray-300">
+                <Users className="h-5 w-5 text-white shrink-0" />
+                <span className="text-sm text-gray-200">
                   Join our global network of FACE honorees
                 </span>
               </div>
@@ -105,8 +109,8 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-gray-800">
-          <p className="text-sm text-center text-gray-400">
+        <div className="mt-12 pt-8 border-t border-gray-600">
+          <p className="text-sm text-center text-gray-300">
             © {currentYear} Outstanding FACE Global Recognition Awards. All rights reserved.
           </p>
         </div>

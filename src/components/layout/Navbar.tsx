@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +13,7 @@ import {
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +22,12 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setTimeout(() => window.scrollTo(0, 0), 100);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <nav
@@ -33,9 +40,10 @@ const Navbar = () => {
           <Link
             to="/"
             className="flex items-center space-x-2"
+            onClick={() => handleNavigation('/')}
           >
             <img 
-              src="/lovable-uploads/d3c7b365-309d-4e28-8670-d9e32511bd89.png" 
+              src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
               alt="FACE Awards Logo" 
               className="h-12 w-auto"
             />
@@ -46,43 +54,41 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
+            <button onClick={() => handleNavigation('/')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
               Home
-            </Link>
+            </button>
             <DropdownMenu>
-              <DropdownMenuTrigger className={`flex items-center space-x-1 ${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
+              <DropdownMenuTrigger className={`flex items-center space-x-1 ${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
                 <span>Awards</span>
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white">
                 <DropdownMenuItem asChild>
-                  <Link to="/nominees" className="w-full">Current Nominees</Link>
+                  <button onClick={() => handleNavigation('/nominees')} className="w-full text-left">Current Nominees</button>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/categories" className="w-full">Categories</Link>
+                  <button onClick={() => handleNavigation('/categories')} className="w-full text-left">Categories</button>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/past-winners" className="w-full">Past Winners</Link>
+                  <button onClick={() => handleNavigation('/past-winners')} className="w-full text-left">Past Winners</button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Link to="/gallery" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
+            <button onClick={() => handleNavigation('/gallery')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
               Gallery
-            </Link>
-            <Link to="/approach" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
+            </button>
+            <button onClick={() => handleNavigation('/approach')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
               Our Approach
-            </Link>
-            <Link to="/about" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
+            </button>
+            <button onClick={() => handleNavigation('/about')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
               About
-            </Link>
-            <Link to="/contact" className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-gold transition-colors`}>
+            </button>
+            <button onClick={() => handleNavigation('/contact')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
               Contact
-            </Link>
-            <Link to="/registration" className="hidden lg:block">
-              <Button variant="outline" className="border-face-gold text-face-gold hover:bg-face-gold hover:text-white">
-                Register for Event
-              </Button>
-            </Link>
+            </button>
+            <Button variant="outline" className="border-face-blue text-face-blue hover:bg-face-blue hover:text-white hidden lg:block" onClick={() => handleNavigation('/registration')}>
+              Register for Event
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}

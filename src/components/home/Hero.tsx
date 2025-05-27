@@ -4,8 +4,12 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Hero = () => {
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <section className="relative min-h-screen flex items-center hero-gradient">
+    <section className="relative min-h-screen flex items-center bg-gradient-to-r from-face-blue via-face-navy to-face-grey">
       {/* Background image overlay */}
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511578314322-379afb476865')] bg-cover bg-center bg-no-repeat opacity-20"></div>
       
@@ -13,30 +17,42 @@ const Hero = () => {
       <div className="container mx-auto px-4 py-24 relative z-10">
         <div className="max-w-3xl mx-auto text-center text-white">
           <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-in">
-            Celebrating Global <span className="text-face-gold">Excellence</span>
+            Celebrating Global <span className="text-white">Excellence</span>
           </h1>
-          <p className="text-xl opacity-90 mb-8 animate-slide-in">
+          <p className="text-xl opacity-90 mb-8 animate-slide-in delay-300">
             Recognizing outstanding achievements in Focus, Achievement, Courage, and Excellence across the world
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-scale-up">
-            <Button asChild size="lg" className="bg-face-gold hover:bg-yellow-500 text-face-blue font-medium border-2 border-face-gold shadow-lg">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-scale-up delay-500">
+            <Button 
+              asChild 
+              size="lg" 
+              className="bg-face-blue hover:bg-face-navy text-white font-semibold border-2 border-face-blue shadow-lg"
+              onClick={handleScrollToTop}
+            >
               <Link to="/nominees">View Current Nominees</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-white  bg-white/20 text-white hover:bg-white/40 border-2">
+            <Button 
+              asChild 
+              variant="outline" 
+              size="lg" 
+              className="border-white bg-white/20 text-white hover:bg-white/40 border-2"
+              onClick={handleScrollToTop}
+            >
               <Link to="/registration">Register for Event</Link>
             </Button>
           </div>
           
           {/* Featured Highlight with improved visibility */}
-          <div className="mt-16 bg-face-blue/60 backdrop-blur-sm p-6 rounded-lg border border-white/20 animate-fade-in">
-            <div className="font-medium mb-2 uppercase text-face-gold text-sm tracking-wider">Recent Highlight</div>
+          <div className="mt-16 bg-white/10 backdrop-blur-sm p-6 rounded-lg border border-white/20 animate-fade-in delay-700">
+            <div className="font-medium mb-2 uppercase text-white text-sm tracking-wider">Recent Highlight</div>
             <h3 className="text-2xl font-serif font-bold mb-2">Voting Now Open for 2025 Awards</h3>
             <p className="text-white mb-4">
               Cast your vote for outstanding nominees across 12 categories representing innovation and excellence from around the world.
             </p>
             <Link 
               to="/nominees" 
-              className="inline-flex items-center text-face-gold hover:text-white transition-colors"
+              className="inline-flex items-center text-face-blue bg-white px-4 py-2 rounded hover:bg-face-light transition-colors"
+              onClick={handleScrollToTop}
             >
               Cast Your Vote <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

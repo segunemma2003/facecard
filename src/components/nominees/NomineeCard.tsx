@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface Nominee {
   id: number;
@@ -27,6 +27,7 @@ interface NomineeCardProps {
 const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
+  const navigate = useNavigate();
 
   const handleVote = () => {
     if (hasVoted) return;
@@ -43,6 +44,11 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
         description: `You've successfully voted for ${nominee.name}.`,
       });
     }, 1000);
+  };
+
+  const handleViewProfile = () => {
+    navigate(`/nominees/${nominee.id}`);
+    setTimeout(() => window.scrollTo(0, 0), 100);
   };
 
   return (
@@ -63,7 +69,7 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
       <CardHeader>
         <div className="flex justify-between">
           <CardTitle className="text-xl font-serif">{nominee.name}</CardTitle>
-          <Award className="h-5 w-5 text-face-gold" />
+          <Award className="h-5 w-5 text-face-blue" />
         </div>
         <p className="text-sm text-gray-500">{nominee.organization}</p>
       </CardHeader>
@@ -83,7 +89,7 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
       <CardFooter className="border-t border-gray-100 pt-4 flex flex-col space-y-3">
         {nominee.canVote ? (
           <Button 
-            className={`w-full ${hasVoted ? 'bg-green-600 text-white' : 'bg-face-gold text-face-blue hover:bg-yellow-500 border-2 border-face-gold shadow-md font-semibold'}`}
+            className={`w-full ${hasVoted ? 'bg-green-600 text-white' : 'bg-face-blue text-white hover:bg-face-navy border-2 border-face-blue shadow-md font-semibold'}`}
             onClick={handleVote}
             disabled={isVoting || hasVoted}
           >
@@ -112,10 +118,8 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
             Voting for this nominee has ended
           </div>
         )}
-        <Button variant="outline" className="w-full border-2 shadow-sm" asChild>
-          <Link to={`/nominees/${nominee.id}`} className="flex items-center justify-center">
-            View Full Profile <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
+        <Button variant="outline" className="w-full border-2 shadow-sm" onClick={handleViewProfile}>
+          View Full Profile <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>
