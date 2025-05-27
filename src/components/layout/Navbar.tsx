@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronDown } from 'lucide-react';
@@ -25,7 +24,11 @@ const Navbar = () => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    setTimeout(() => window.scrollTo(0, 0), 100);
+    // Scroll to top immediately and again after a short delay to ensure it works
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }, 50);
     setMobileMenuOpen(false);
   };
 
@@ -39,56 +42,44 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-6">
         <div className="flex justify-between items-center h-20">
-          <Link
-            to="/"
-            className="flex items-center space-x-3 group"
+          <button
             onClick={() => handleNavigation('/')}
+            className="flex items-center space-x-3 group"
           >
             <img 
               src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
               alt="FACE Awards Logo" 
               className="h-14 w-auto transition-transform duration-300 group-hover:scale-110"
             />
-            <div className="hidden sm:block">
-              <span className={`font-bold text-2xl transition-colors duration-300 ${
-                isScrolled ? 'text-brand-blue' : 'text-white'
-              }`} style={{ fontFamily: 'Clash Display' }}>
-                FACE
-              </span>
-              <span className={`block text-sm font-medium ${
-                isScrolled ? 'text-brand-grey' : 'text-white/90'
-              }`}>
-                Awards
-              </span>
-            </div>
-          </Link>
+            
+          </button>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             <button 
               onClick={() => handleNavigation('/')} 
               className={`font-medium transition-all duration-300 hover:scale-105 ${
-                isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue-light'
+                isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue'
               }`}
             >
               Home
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger className={`flex items-center space-x-1 font-medium transition-all duration-300 hover:scale-105 ${
-                isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue-light'
+                isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue'
               }`}>
                 <span>Awards</span>
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white/95 backdrop-blur-md border border-brand-blue/20 shadow-xl rounded-xl">
                 <DropdownMenuItem asChild>
-                  <button onClick={() => handleNavigation('/nominees')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue-light transition-all duration-300">Current Nominees</button>
+                  <button onClick={() => handleNavigation('/nominees')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue/10 transition-all duration-300">Current Nominees</button>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <button onClick={() => handleNavigation('/categories')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue-light transition-all duration-300">Categories</button>
+                  <button onClick={() => handleNavigation('/categories')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue/10 transition-all duration-300">Categories</button>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <button onClick={() => handleNavigation('/past-winners')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue-light transition-all duration-300">Past Winners</button>
+                  <button onClick={() => handleNavigation('/past-winners')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue/10 transition-all duration-300">Past Winners</button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -97,7 +88,7 @@ const Navbar = () => {
                 key={item}
                 onClick={() => handleNavigation(`/${item}`)} 
                 className={`font-medium transition-all duration-300 hover:scale-105 capitalize ${
-                  isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue-light'
+                  isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue'
                 }`}
               >
                 {item === 'approach' ? 'Our Approach' : item}
@@ -105,7 +96,7 @@ const Navbar = () => {
             ))}
             <Button 
               variant="outline" 
-              className="border-2 shadow-lg hover:scale-105 transition-all duration-300" 
+              className="border-2 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white shadow-lg hover:scale-105 transition-all duration-300" 
               onClick={() => handleNavigation('/registration')}
             >
               Register for Event
@@ -114,7 +105,7 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <button 
-            className="lg:hidden p-2 rounded-lg transition-all duration-300 hover:bg-brand-blue-light"
+            className="lg:hidden p-2 rounded-lg transition-all duration-300 hover:bg-brand-blue/20"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
@@ -143,7 +134,7 @@ const Navbar = () => {
                 <button
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
-                  className="text-left font-medium text-brand-grey hover:text-brand-blue transition-all duration-300 px-4 py-3 rounded-lg hover:bg-brand-blue-light"
+                  className="text-left font-medium text-brand-grey hover:text-brand-blue transition-all duration-300 px-4 py-3 rounded-lg hover:bg-brand-blue/10"
                 >
                   {item.title}
                 </button>

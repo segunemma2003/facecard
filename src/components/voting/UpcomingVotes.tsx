@@ -1,4 +1,3 @@
-
 import { Calendar, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +18,7 @@ interface UpcomingVotesProps {
 const UpcomingVotes = ({ votes, title = "Upcoming Voting Periods" }: UpcomingVotesProps) => {
   return (
     <Card>
-      <CardHeader className="bg-face-gold text-face-blue pb-3">
+      <CardHeader className="bg-brand-blue text-brand-white pb-3">
         <CardTitle className="flex items-center text-xl">
           <Calendar className="h-5 w-5 mr-2" />
           {title}
@@ -33,11 +32,11 @@ const UpcomingVotes = ({ votes, title = "Upcoming Voting Periods" }: UpcomingVot
             votes.map((vote) => (
               <div 
                 key={vote.id} 
-                className="border border-gray-200 rounded-lg p-4 hover:border-face-gold transition-colors"
+                className="border border-gray-200 rounded-lg p-4 hover:border-brand-blue transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-serif font-bold text-face-blue">{vote.category}</h3>
+                    <h3 className="font-serif font-bold text-brand-blue">{vote.category}</h3>
                     <div className="flex items-center text-sm text-gray-500 mt-1">
                       <Clock className="h-4 w-4 mr-1" />
                       <span>
@@ -52,7 +51,7 @@ const UpcomingVotes = ({ votes, title = "Upcoming Voting Periods" }: UpcomingVot
                       </span>
                     </div>
                   </div>
-                  <Badge variant="outline" className="bg-face-blue/10">
+                  <Badge variant="outline" className="bg-brand-blue/10">
                     {vote.nominees} Nominees
                   </Badge>
                 </div>

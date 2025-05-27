@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 
@@ -29,7 +28,7 @@ const TrendingTicker = ({ nominees }: TrendingTickerProps) => {
   return (
     <div 
       ref={tickerRef}
-      className="bg-face-gold/90 text-face-blue py-2 w-full overflow-hidden backdrop-blur-sm"
+      className="bg-brand-blue/90 text-brand-white py-2 w-full overflow-hidden backdrop-blur-sm"
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center">
