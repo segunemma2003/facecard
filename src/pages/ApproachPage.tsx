@@ -21,7 +21,7 @@ const ApproachPage = () => {
       icon: Globe,
       title: "Global Reach, Local Impact",
       subtitle: "Worldwide Recognition Without Boundaries",
-      image: "https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
+      image: "https://images.pexels.com/photos/1029604/pexels-photo-1029604.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
       description: "FACE is not limited by geography. We are committed to recognizing outstanding excellence wherever it exists — from local heroes in small communities to global brands making waves across continents.",
       details: "Our nomination process extends across borders, languages, and cultures, ensuring that all forms of excellence have the opportunity to be recognized regardless of location.",
       color: "from-blue-500 to-cyan-500"
@@ -31,7 +31,7 @@ const ApproachPage = () => {
       icon: Users,
       title: "People-Centered Nomination Process",
       subtitle: "Democratic Recognition by the People",
-      image: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
+      image: "https://images.pexels.com/photos/1181467/pexels-photo-1181467.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
       description: "Nominees are selected through open, inclusive polling systems. For example, if we are spotlighting the telecom sector in Nigeria, the public will vote on individuals or companies they believe are making the most impact.",
       details: "This democratic model ensures that recognition comes from the people who experience the impact directly. Our internal screening team then verifies that nominees meet the category criteria before advancing to the final voting round.",
       color: "from-green-500 to-teal-500"
@@ -41,7 +41,7 @@ const ApproachPage = () => {
       icon: Trophy,
       title: "Award Delivery – Personal and Global",
       subtitle: "Excellence Delivered to Your Doorstep",
-      image: "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
+      image: "https://images.pexels.com/photos/8761456/pexels-photo-8761456.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
       description: "Once nominees are selected and voting concludes, winners receive a beautifully crafted award trophy or plaque, which is sent via secure delivery, courier, or personally presented depending on the location and circumstance.",
       details: "This approach makes sure that every honoree, regardless of their location, receives the recognition they deserve. Each award is custom-crafted to reflect the prestige and honor associated with the FACE Awards.",
       color: "from-purple-500 to-pink-500"
@@ -51,7 +51,7 @@ const ApproachPage = () => {
       icon: Calendar,
       title: "End-of-Year Global Recognition Ceremony",
       subtitle: "A Grand Celebration of Excellence",
-      image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
+      image: "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
       description: "While FACE primarily delivers awards globally throughout the year, we may also host an annual end-of-year grand recognition ceremony where awardees from around the world can gather, network, and be celebrated in an atmosphere of elegance and inspiration.",
       details: "This optional event brings together diverse leaders and innovators, creating unique opportunities for collaboration and connection among those who exemplify excellence in their respective fields.",
       color: "from-orange-500 to-red-500"
@@ -61,7 +61,7 @@ const ApproachPage = () => {
       icon: Handshake,
       title: "Diverse International Collaboration",
       subtitle: "United by Excellence, Strengthened by Diversity",
-      image: "https://images.unsplash.com/photo-1466442929976-97f336a657be?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
+      image: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800&h=400&fit=crop",
       description: "FACE is built on strong global partnerships. We are assembling a multicultural, multinational team of professionals, advisors, and collaborators to ensure that our work remains relevant, inclusive, and representative of diverse voices worldwide.",
       details: "This collaborative approach allows us to maintain cultural sensitivity while ensuring that our recognition standards remain consistently high across all regions and sectors we serve.",
       color: "from-indigo-500 to-blue-500"
