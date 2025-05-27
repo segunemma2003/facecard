@@ -63,13 +63,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Updated FACE brand colors
-				face: {
-					blue: '#87CEEB',  // Sky blue primary
-					white: '#FFFFFF', // White secondary
-					grey: '#333333',  // Grey accent
-					navy: '#4682B4',  // Darker blue for depth
-					light: '#F0F8FF'  // Very light blue for backgrounds
+				// FACE Brand Colors
+				brand: {
+					blue: '#87CEEB',      // Sky blue - primary standout color
+					white: '#FFFFFF',     // White - primary color
+					grey: '#333333',      // Grey - primary color
+					'blue-light': '#E0F6FF', // Very light blue for backgrounds
+					'blue-dark': '#4682B4',   // Darker blue for depth
 				}
 			},
 			borderRadius: {

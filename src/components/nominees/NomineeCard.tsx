@@ -1,12 +1,12 @@
 
 import { useState } from 'react';
-import { Award, ThumbsUp, ArrowRight } from 'lucide-react';
+import { Award, ThumbsUp, ArrowRight, Users } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface Nominee {
   id: number;
@@ -52,53 +52,68 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
   };
 
   return (
-    <Card className="overflow-hidden card-hover border border-gray-200">
-      <div className="relative h-48">
+    <Card className="card-modern overflow-hidden group">
+      <div className="relative h-56 overflow-hidden">
         <img 
-          src={`${nominee.imageUrl}?w=600&h=300&fit=crop`} 
+          src={`${nominee.imageUrl}?w=600&h=400&fit=crop`} 
           alt={nominee.name} 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
         <div className="absolute top-4 right-4">
-          <Badge className="bg-face-blue text-white">
+          <Badge className="bg-brand-blue text-white border-0 shadow-lg">
             {nominee.category}
           </Badge>
         </div>
+        <div className="absolute bottom-4 left-4 right-4">
+          <div className="flex items-center text-white text-sm">
+            <Users className="h-4 w-4 mr-2" />
+            <span className="font-medium">{nominee.votingPercentage}% voted</span>
+          </div>
+        </div>
       </div>
       
-      <CardHeader>
-        <div className="flex justify-between">
-          <CardTitle className="text-xl font-serif">{nominee.name}</CardTitle>
-          <Award className="h-5 w-5 text-face-blue" />
+      <CardHeader className="pb-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-xl font-bold text-brand-grey mb-2" style={{ fontFamily: 'Clash Display' }}>
+              {nominee.name}
+            </CardTitle>
+            <p className="text-brand-blue font-medium">{nominee.organization}</p>
+          </div>
+          <Award className="h-6 w-6 text-brand-blue flex-shrink-0" />
         </div>
-        <p className="text-sm text-gray-500">{nominee.organization}</p>
       </CardHeader>
       
-      <CardContent>
-        <p className="text-sm text-gray-600 mb-4">{nominee.description}</p>
+      <CardContent className="space-y-4">
+        <p className="text-brand-grey/80 leading-relaxed">{nominee.description}</p>
         
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Current Standing</span>
-            <span className="font-medium">{nominee.votingPercentage}%</span>
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm font-medium">
+            <span className="text-brand-grey">Current Standing</span>
+            <span className="text-brand-blue">{nominee.votingPercentage}%</span>
           </div>
-          <Progress value={nominee.votingPercentage} className="h-2" />
+          <Progress 
+            value={nominee.votingPercentage} 
+            className="h-3 bg-brand-blue-light"
+          />
         </div>
       </CardContent>
       
-      <CardFooter className="border-t border-gray-100 pt-4 flex flex-col space-y-3">
+      <CardFooter className="border-t border-brand-blue/10 pt-6 flex flex-col space-y-3">
         {nominee.canVote ? (
           <Button 
-            className={`w-full ${hasVoted ? 'bg-green-600 text-white' : 'bg-face-blue text-white hover:bg-face-navy border-2 border-face-blue shadow-md font-semibold'}`}
+            className={`w-full ${
+              hasVoted 
+                ? 'bg-green-500 text-white hover:bg-green-600 border-green-500' 
+                : 'btn-primary'
+            }`}
             onClick={handleVote}
             disabled={isVoting || hasVoted}
           >
             {isVoting ? (
               <span className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                 Processing...
               </span>
             ) : hasVoted ? (
@@ -114,12 +129,17 @@ const NomineeCard = ({ nominee, onVote }: NomineeCardProps) => {
             )}
           </Button>
         ) : (
-          <div className="w-full text-center text-sm text-gray-500">
+          <div className="w-full text-center text-brand-grey/60 py-3 bg-brand-blue-light rounded-lg">
             Voting for this nominee has ended
           </div>
         )}
-        <Button variant="outline" className="w-full border-2 shadow-sm" onClick={handleViewProfile}>
-          View Full Profile <ArrowRight className="ml-2 h-4 w-4" />
+        <Button 
+          variant="outline" 
+          className="w-full border-2 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white" 
+          onClick={handleViewProfile}
+        >
+          View Full Profile 
+          <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>

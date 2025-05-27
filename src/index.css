@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Open+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -22,7 +22,7 @@
     --secondary: 255 255 255;
     --secondary-foreground: 51 51 51;
 
-    --muted: 240 248 255;
+    --muted: 224 246 255;
     --muted-foreground: 51 51 51;
 
     --accent: 51 51 51;
@@ -31,19 +31,19 @@
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
 
-    --border: 229 231 235;
-    --input: 229 231 235;
+    --border: 135 206 235;
+    --input: 135 206 235;
     --ring: 135 206 235;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 255 255 255;
     --sidebar-foreground: 51 51 51;
     --sidebar-primary: 135 206 235;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 240 248 255;
+    --sidebar-accent: 224 246 255;
     --sidebar-accent-foreground: 51 51 51;
-    --sidebar-border: 229 231 235;
+    --sidebar-border: 135 206 235;
     --sidebar-ring: 135 206 235;
   }
 
@@ -95,41 +95,50 @@
   body {
     @apply bg-background text-foreground;
     scroll-behavior: smooth;
+    font-family: 'Manrope', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
+    font-family: 'Clash Display', serif;
+    font-weight: 600;
   }
 
   p, span, a, button, input, select, textarea {
-    @apply font-sans;
+    font-family: 'Manrope', sans-serif;
   }
 }
 
 @layer components {
-  .hero-gradient {
-    @apply bg-gradient-to-r from-face-blue via-face-navy to-face-grey;
+  .brand-gradient {
+    @apply bg-gradient-to-r from-brand-blue via-brand-blue-dark to-brand-grey;
   }
 
-  .blue-gradient {
-    @apply bg-gradient-to-r from-face-blue to-face-navy;
+  .brand-blue-gradient {
+    @apply bg-gradient-to-r from-brand-blue to-brand-blue-dark;
   }
 
-  .trophy-shine {
-    @apply bg-gradient-to-r from-transparent via-white to-transparent bg-[length:200%_100%] animate-shine;
-  }
-
-  .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:scale-105;
+  .card-modern {
+    @apply bg-white border border-brand-blue/20 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02];
   }
   
-  .section-padding {
-    @apply py-16 md:py-24;
+  .btn-primary {
+    @apply bg-brand-blue text-white font-semibold px-6 py-3 rounded-lg border-2 border-brand-blue shadow-lg hover:bg-brand-blue-dark hover:border-brand-blue-dark transition-all duration-300;
   }
-  
-  /* Updated button visibility with sky blue theme */
-  .btn-nominees {
-    @apply bg-face-blue text-white font-semibold border-2 border-face-blue shadow-md hover:bg-face-navy;
+
+  .btn-secondary {
+    @apply bg-white text-brand-blue font-semibold px-6 py-3 rounded-lg border-2 border-brand-blue shadow-lg hover:bg-brand-blue hover:text-white transition-all duration-300;
+  }
+
+  .section-modern {
+    @apply py-20 px-4;
+  }
+
+  .text-primary {
+    @apply text-brand-grey;
+  }
+
+  .text-accent {
+    @apply text-brand-blue;
   }
 }
 

@@ -31,146 +31,123 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        isScrolled 
+          ? 'bg-white/95 backdrop-blur-md shadow-xl border-b border-brand-blue/20' 
+          : 'bg-transparent'
       }`}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center">
+      <div className="container mx-auto px-6">
+        <div className="flex justify-between items-center h-20">
           <Link
             to="/"
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-3 group"
             onClick={() => handleNavigation('/')}
           >
             <img 
               src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
               alt="FACE Awards Logo" 
-              className="h-12 w-auto"
+              className="h-14 w-auto transition-transform duration-300 group-hover:scale-110"
             />
-            <span className={`font-serif font-bold text-2xl ${isScrolled ? 'text-face-blue' : 'text-white'} hidden sm:inline-block`}>
-              Awards
-            </span>
+            <div className="hidden sm:block">
+              <span className={`font-bold text-2xl transition-colors duration-300 ${
+                isScrolled ? 'text-brand-blue' : 'text-white'
+              }`} style={{ fontFamily: 'Clash Display' }}>
+                FACE
+              </span>
+              <span className={`block text-sm font-medium ${
+                isScrolled ? 'text-brand-grey' : 'text-white/90'
+              }`}>
+                Awards
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <button onClick={() => handleNavigation('/')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
+          <div className="hidden lg:flex items-center space-x-8">
+            <button 
+              onClick={() => handleNavigation('/')} 
+              className={`font-medium transition-all duration-300 hover:scale-105 ${
+                isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue-light'
+              }`}
+            >
               Home
             </button>
             <DropdownMenu>
-              <DropdownMenuTrigger className={`flex items-center space-x-1 ${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
+              <DropdownMenuTrigger className={`flex items-center space-x-1 font-medium transition-all duration-300 hover:scale-105 ${
+                isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue-light'
+              }`}>
                 <span>Awards</span>
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-white">
+              <DropdownMenuContent className="bg-white/95 backdrop-blur-md border border-brand-blue/20 shadow-xl rounded-xl">
                 <DropdownMenuItem asChild>
-                  <button onClick={() => handleNavigation('/nominees')} className="w-full text-left">Current Nominees</button>
+                  <button onClick={() => handleNavigation('/nominees')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue-light transition-all duration-300">Current Nominees</button>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <button onClick={() => handleNavigation('/categories')} className="w-full text-left">Categories</button>
+                  <button onClick={() => handleNavigation('/categories')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue-light transition-all duration-300">Categories</button>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <button onClick={() => handleNavigation('/past-winners')} className="w-full text-left">Past Winners</button>
+                  <button onClick={() => handleNavigation('/past-winners')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue-light transition-all duration-300">Past Winners</button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <button onClick={() => handleNavigation('/gallery')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
-              Gallery
-            </button>
-            <button onClick={() => handleNavigation('/approach')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
-              Our Approach
-            </button>
-            <button onClick={() => handleNavigation('/about')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
-              About
-            </button>
-            <button onClick={() => handleNavigation('/contact')} className={`${isScrolled ? 'text-face-blue' : 'text-white'} hover:text-face-blue transition-colors`}>
-              Contact
-            </button>
-            <Button variant="outline" className="border-face-blue text-face-blue hover:bg-face-blue hover:text-white hidden lg:block" onClick={() => handleNavigation('/registration')}>
+            {['gallery', 'approach', 'about', 'contact'].map((item) => (
+              <button 
+                key={item}
+                onClick={() => handleNavigation(`/${item}`)} 
+                className={`font-medium transition-all duration-300 hover:scale-105 capitalize ${
+                  isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue-light'
+                }`}
+              >
+                {item === 'approach' ? 'Our Approach' : item}
+              </button>
+            ))}
+            <Button 
+              variant="outline" 
+              className="border-2 shadow-lg hover:scale-105 transition-all duration-300" 
+              onClick={() => handleNavigation('/registration')}
+            >
               Register for Event
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden"
+            className="lg:hidden p-2 rounded-lg transition-all duration-300 hover:bg-brand-blue-light"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
-              <X className={`h-6 w-6 ${isScrolled ? 'text-face-blue' : 'text-white'}`} />
+              <X className={`h-6 w-6 ${isScrolled ? 'text-brand-blue' : 'text-white'}`} />
             ) : (
-              <Menu className={`h-6 w-6 ${isScrolled ? 'text-face-blue' : 'text-white'}`} />
+              <Menu className={`h-6 w-6 ${isScrolled ? 'text-brand-blue' : 'text-white'}`} />
             )}
           </button>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white mt-4 py-4 px-2 rounded-lg shadow-lg animate-fade-in">
+          <div className="lg:hidden bg-white/95 backdrop-blur-md mt-4 py-6 px-4 rounded-xl shadow-xl border border-brand-blue/20 animate-fade-in">
             <div className="flex flex-col space-y-4">
-              <Link 
-                to="/" 
-                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link 
-                to="/nominees" 
-                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Current Nominees
-              </Link>
-              <Link 
-                to="/categories" 
-                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Categories
-              </Link>
-              <Link 
-                to="/past-winners" 
-                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Past Winners
-              </Link>
-              <Link 
-                to="/gallery" 
-                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Gallery
-              </Link>
-              <Link 
-                to="/approach" 
-                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Our Approach
-              </Link>
-              <Link 
-                to="/about" 
-                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link 
-                to="/contact" 
-                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contact
-              </Link>
-              <Link 
-                to="/registration"
-                className="text-face-blue hover:text-face-gold transition-colors px-4 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Register for Event
-              </Link>
+              {[
+                { title: 'Home', path: '/' },
+                { title: 'Current Nominees', path: '/nominees' },
+                { title: 'Categories', path: '/categories' },
+                { title: 'Past Winners', path: '/past-winners' },
+                { title: 'Gallery', path: '/gallery' },
+                { title: 'Our Approach', path: '/approach' },
+                { title: 'About', path: '/about' },
+                { title: 'Contact', path: '/contact' },
+                { title: 'Register for Event', path: '/registration' }
+              ].map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => handleNavigation(item.path)}
+                  className="text-left font-medium text-brand-grey hover:text-brand-blue transition-all duration-300 px-4 py-3 rounded-lg hover:bg-brand-blue-light"
+                >
+                  {item.title}
+                </button>
+              ))}
             </div>
           </div>
         )}
