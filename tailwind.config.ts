@@ -19,46 +19,43 @@ export default {
       },
     },
     extend: {
-      fontFamily: {
-        'serif': ['Clash Display', 'serif'],
-        'sans': ['Manrope', 'sans-serif'],
-      },
       colors: {
-        // FACE Brand Colors - Updated to match brand guidelines
-        'brand-blue': '#87CEEB',      // Sky Blue - Primary standout color
-        'brand-blue-light': '#B6E2FF', // Lighter variant for accents
-        'brand-blue-dark': '#5BA3D0',  // Darker variant for hovers
-        'brand-white': '#FFFFFF',      // Pure White 
-        'brand-grey': '#333333',       // Dark Grey
-        'brand-grey-light': '#666666', // Medium Grey for text
-        'brand-grey-lighter': '#999999', // Light Grey for subtle text
+        // FACE Brand Colors - Primary System
+        'face-white': '#FFFFFF',
+        'face-sky-blue': '#87CEEB', // Primary standout color
+        'face-grey': '#333333',
         
-        // Remove gold/yellow references - not in brand guidelines
+        // Variations and tints for design flexibility
+        'face-sky-blue-light': '#B8E0F5',
+        'face-sky-blue-dark': '#5BA3CC',
+        'face-grey-light': '#666666',
+        'face-grey-dark': '#1A1A1A',
         
+        // System colors using brand palette
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#87CEEB", // face-sky-blue
+          foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#333333", // face-grey
+          foreground: "#FFFFFF",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#F8F9FA",
+          foreground: "#666666",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "#87CEEB", // face-sky-blue
+          foreground: "#333333",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -68,6 +65,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      fontFamily: {
+        'clash': ['Clash Display', 'serif'], // Primary font for titles
+        'manrope': ['Manrope', 'sans-serif'], // Secondary font for body text
+        'sans': ['Manrope', 'sans-serif'], // Default sans
+        'serif': ['Clash Display', 'serif'], // Default serif
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -84,11 +87,11 @@ export default {
           to: { height: "0" },
         },
         "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "slide-in": {
-          "0%": { opacity: "0", transform: "translateX(-10px)" },
+          "0%": { opacity: "0", transform: "translateX(-20px)" },
           "100%": { opacity: "1", transform: "translateX(0)" },
         },
         "scale-up": {
@@ -103,13 +106,12 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.5s ease-out",
-        "slide-in": "slide-in 0.5s ease-out",
+        "fade-in": "fade-in 0.6s ease-out",
+        "slide-in": "slide-in 0.8s ease-out",
         "scale-up": "scale-up 0.5s ease-out",
-        "bounce-slow": "bounce-slow 2s ease-in-out infinite",
+        "bounce-slow": "bounce-slow 2s infinite",
       },
     },
   },
   plugins: [require("tailwindcss-animate")],
-
 } satisfies Config;

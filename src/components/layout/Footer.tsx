@@ -5,31 +5,27 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const handleNavigation = (path: string) => {
-    setTimeout(() => window.scrollTo(0, 0), 100);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
   return (
-    <footer className="bg-gradient-to-br from-brand-grey via-brand-grey to-brand-blue-dark text-white">
+    <footer className="bg-gradient-to-br from-face-grey via-face-grey-light to-face-grey-dark text-face-white">
       <div className="container mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex flex-col items-start space-y-4">
-              <img 
-                src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
-                alt="FACE Awards Logo" 
-                className="h-20 w-auto"
-              />
-              <div>
-                <h3 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Clash Display' }}>
-                  FACE Awards
-                </h3>
-                <p className="text-lg text-brand-blue-light font-medium">
-                  Focus • Achievement • Courage • Excellence
-                </p>
+              {/* Updated brand logo area */}
+              <div className="flex items-center space-x-3">
+                <img 
+                  src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
+                  alt="FACE Awards Logo" 
+                  className="h-16 w-auto"
+                />
+               
               </div>
             </div>
-            <p className="text-white/90 leading-relaxed max-w-md">
+            <p className="text-face-white/90 leading-relaxed max-w-md font-manrope">
               Celebrating outstanding individuals and organizations making meaningful impact across the globe. 
               Recognizing excellence in innovation, leadership, and social contribution.
             </p>
@@ -43,7 +39,7 @@ const Footer = () => {
                 <a 
                   key={index}
                   href={social.href} 
-                  className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-brand-blue hover:scale-110 transition-all duration-300"
+                  className="w-12 h-12 bg-face-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center text-face-white hover:bg-face-sky-blue hover:scale-110 transition-all duration-300"
                 >
                   <social.icon className="h-5 w-5" />
                 </a>
@@ -53,7 +49,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="space-y-6">
-            <h4 className="text-xl font-bold mb-6" style={{ fontFamily: 'Clash Display' }}>
+            <h4 className="text-xl font-bold mb-6 font-clash">
               Quick Links
             </h4>
             <ul className="space-y-4">
@@ -67,7 +63,7 @@ const Footer = () => {
                 <li key={link.path}>
                   <Link 
                     to={link.path} 
-                    className="text-white/80 hover:text-brand-blue-light transition-colors duration-300 font-medium hover:translate-x-2 inline-block transform transition-transform" 
+                    className="text-face-white/80 hover:text-face-sky-blue-light transition-colors duration-300 font-medium hover:translate-x-2 inline-block transform transition-transform font-manrope" 
                     onClick={() => handleNavigation(link.path)}
                   >
                     {link.title}
@@ -79,36 +75,36 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div className="space-y-6">
-            <h4 className="text-xl font-bold mb-6" style={{ fontFamily: 'Clash Display' }}>
+            <h4 className="text-xl font-bold mb-6 font-clash">
               Contact Us
             </h4>
             <div className="space-y-4">
               <div className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-brand-blue rounded-lg flex items-center justify-center flex-shrink-0">
-                  <MapPin className="h-5 w-5 text-white" />
+                <div className="w-10 h-10 bg-face-sky-blue rounded-lg flex items-center justify-center flex-shrink-0">
+                  <MapPin className="h-5 w-5 text-face-white" />
                 </div>
-                <span className="text-white/90 leading-relaxed">
+                <span className="text-face-white/90 leading-relaxed font-manrope">
                   Global Headquarters<br />
                   123 Recognition Avenue<br />
                   New York, NY 10001
                 </span>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-brand-blue rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Mail className="h-5 w-5 text-white" />
+                <div className="w-10 h-10 bg-face-sky-blue rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Mail className="h-5 w-5 text-face-white" />
                 </div>
                 <a 
                   href="mailto:info@faceawards.org" 
-                  className="text-white/90 hover:text-brand-blue-light transition-colors duration-300 font-medium"
+                  className="text-face-white/90 hover:text-face-sky-blue-light transition-colors duration-300 font-medium font-manrope"
                 >
                   info@faceawards.org
                 </a>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-brand-blue rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Users className="h-5 w-5 text-white" />
+                <div className="w-10 h-10 bg-face-sky-blue rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Users className="h-5 w-5 text-face-white" />
                 </div>
-                <span className="text-white/90">
+                <span className="text-face-white/90 font-manrope">
                   Join our global network of FACE honorees
                 </span>
               </div>
@@ -116,14 +112,14 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-white/20">
+        <div className="mt-16 pt-8 border-t border-face-white/20">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-white/70 text-center md:text-left">
+            <p className="text-face-white/70 text-center md:text-left font-manrope">
               © {currentYear} Outstanding FACE Global Recognition Awards. All rights reserved.
             </p>
             <div className="flex items-center space-x-2">
-              <Award className="h-5 w-5 text-brand-blue" />
-              <span className="text-white/70">Excellence Recognized Globally</span>
+              <Award className="h-5 w-5 text-face-sky-blue" />
+              <span className="text-face-white/70 font-manrope">Excellence Recognized Globally</span>
             </div>
           </div>
         </div>

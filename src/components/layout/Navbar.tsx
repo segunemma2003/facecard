@@ -24,10 +24,9 @@ const Navbar = () => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    // Scroll to top immediately and again after a short delay to ensure it works
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Fixed scroll to top issue - ensure it happens after navigation
     setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'instant' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 50);
     setMobileMenuOpen(false);
   };
@@ -36,50 +35,52 @@ const Navbar = () => {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-xl border-b border-brand-blue/20' 
+          ? 'bg-face-white/95 backdrop-blur-md shadow-xl border-b border-face-sky-blue/20' 
           : 'bg-transparent'
       }`}
     >
       <div className="container mx-auto px-6">
         <div className="flex justify-between items-center h-20">
-          <button
-            onClick={() => handleNavigation('/')}
+          <Link
+            to="/"
             className="flex items-center space-x-3 group"
+            onClick={() => handleNavigation('/')}
           >
+            {/* FACE Logo */}
             <img 
               src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
               alt="FACE Awards Logo" 
-              className="h-14 w-auto transition-transform duration-300 group-hover:scale-110"
+              className="h-12 w-auto transition-transform duration-300 group-hover:scale-110"
             />
-            
-          </button>
+           
+          </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation with brand colors */}
           <div className="hidden lg:flex items-center space-x-8">
             <button 
               onClick={() => handleNavigation('/')} 
-              className={`font-medium transition-all duration-300 hover:scale-105 ${
-                isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue'
+              className={`font-medium transition-all duration-300 hover:scale-105 font-manrope ${
+                isScrolled ? 'text-face-grey hover:text-face-sky-blue' : 'text-face-white hover:text-face-sky-blue-light'
               }`}
             >
               Home
             </button>
             <DropdownMenu>
-              <DropdownMenuTrigger className={`flex items-center space-x-1 font-medium transition-all duration-300 hover:scale-105 ${
-                isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue'
+              <DropdownMenuTrigger className={`flex items-center space-x-1 font-medium transition-all duration-300 hover:scale-105 font-manrope ${
+                isScrolled ? 'text-face-grey hover:text-face-sky-blue' : 'text-face-white hover:text-face-sky-blue-light'
               }`}>
                 <span>Awards</span>
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-white/95 backdrop-blur-md border border-brand-blue/20 shadow-xl rounded-xl">
+              <DropdownMenuContent className="bg-face-white/95 backdrop-blur-md border border-face-sky-blue/20 shadow-xl rounded-xl">
                 <DropdownMenuItem asChild>
-                  <button onClick={() => handleNavigation('/nominees')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue/10 transition-all duration-300">Current Nominees</button>
+                  <button onClick={() => handleNavigation('/nominees')} className="w-full text-left font-medium text-face-grey hover:text-face-sky-blue hover:bg-face-sky-blue/10 transition-all duration-300 font-manrope">Current Nominees</button>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <button onClick={() => handleNavigation('/categories')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue/10 transition-all duration-300">Categories</button>
+                  <button onClick={() => handleNavigation('/categories')} className="w-full text-left font-medium text-face-grey hover:text-face-sky-blue hover:bg-face-sky-blue/10 transition-all duration-300 font-manrope">Categories</button>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <button onClick={() => handleNavigation('/past-winners')} className="w-full text-left font-medium text-brand-grey hover:text-brand-blue hover:bg-brand-blue/10 transition-all duration-300">Past Winners</button>
+                  <button onClick={() => handleNavigation('/past-winners')} className="w-full text-left font-medium text-face-grey hover:text-face-sky-blue hover:bg-face-sky-blue/10 transition-all duration-300 font-manrope">Past Winners</button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -87,38 +88,41 @@ const Navbar = () => {
               <button 
                 key={item}
                 onClick={() => handleNavigation(`/${item}`)} 
-                className={`font-medium transition-all duration-300 hover:scale-105 capitalize ${
-                  isScrolled ? 'text-brand-grey hover:text-brand-blue' : 'text-white hover:text-brand-blue'
+                className={`font-medium transition-all duration-300 hover:scale-105 capitalize font-manrope ${
+                  isScrolled ? 'text-face-grey hover:text-face-sky-blue' : 'text-face-white hover:text-face-sky-blue-light'
                 }`}
               >
                 {item === 'approach' ? 'Our Approach' : item}
               </button>
             ))}
             <Button 
-              variant="outline" 
-              className="border-2 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white shadow-lg hover:scale-105 transition-all duration-300" 
+              className={`border-2 shadow-lg hover:scale-105 transition-all duration-300 font-manrope ${
+                isScrolled 
+                  ? 'border-face-sky-blue bg-face-sky-blue text-face-white hover:bg-face-sky-blue-dark hover:border-face-sky-blue-dark' 
+                  : 'border-face-white bg-transparent text-face-white hover:bg-face-white hover:text-face-sky-blue'
+              }`} 
               onClick={() => handleNavigation('/registration')}
             >
               Register for Event
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button with brand colors */}
           <button 
-            className="lg:hidden p-2 rounded-lg transition-all duration-300 hover:bg-brand-blue/20"
+            className="lg:hidden p-2 rounded-lg transition-all duration-300 hover:bg-face-sky-blue/20"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
-              <X className={`h-6 w-6 ${isScrolled ? 'text-brand-blue' : 'text-white'}`} />
+              <X className={`h-6 w-6 ${isScrolled ? 'text-face-sky-blue' : 'text-face-white'}`} />
             ) : (
-              <Menu className={`h-6 w-6 ${isScrolled ? 'text-brand-blue' : 'text-white'}`} />
+              <Menu className={`h-6 w-6 ${isScrolled ? 'text-face-sky-blue' : 'text-face-white'}`} />
             )}
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu with brand styling */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-white/95 backdrop-blur-md mt-4 py-6 px-4 rounded-xl shadow-xl border border-brand-blue/20 animate-fade-in">
+          <div className="lg:hidden bg-face-white/95 backdrop-blur-md mt-4 py-6 px-4 rounded-xl shadow-xl border border-face-sky-blue/20 animate-fade-in">
             <div className="flex flex-col space-y-4">
               {[
                 { title: 'Home', path: '/' },
@@ -134,7 +138,7 @@ const Navbar = () => {
                 <button
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
-                  className="text-left font-medium text-brand-grey hover:text-brand-blue transition-all duration-300 px-4 py-3 rounded-lg hover:bg-brand-blue/10"
+                  className="text-left font-medium text-face-grey hover:text-face-sky-blue transition-all duration-300 px-4 py-3 rounded-lg hover:bg-face-sky-blue/10 font-manrope"
                 >
                   {item.title}
                 </button>
