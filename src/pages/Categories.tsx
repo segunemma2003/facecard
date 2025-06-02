@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Award, Trophy, Globe, Star, Clock, Users, ChevronRight, Sparkles, Target, TrendingUp, Calendar, MapPin, Heart, Eye, Vote, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useCategories, useVote, useUserVotes, useCategoryStats } from '@/hooks/useApi';
 import { toast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
 
 const Categories = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("all");
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [animateStats, setAnimateStats] = useState(false);
@@ -39,6 +42,15 @@ const Categories = () => {
     ? categories
     : categories.filter(cat => cat.region === activeTab);
 
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleViewNominees = (categoryId: number) => {
+    navigate(`/nominees?category=${categoryId}`);
+    handleScrollToTop();
+  };
+
   const handleVote = async (categoryId: number) => {
     if (votedCategoryIds.has(categoryId)) {
       toast({
@@ -49,38 +61,9 @@ const Categories = () => {
       return;
     }
     
-    // Find the first nominee in this category to vote for
-    // In a real implementation, you might want to redirect to the category page instead
-    const category = categories.find(cat => cat.id === categoryId);
-    if (!category || !category.nominees || category.nominees.length === 0) {
-      toast({
-        title: "No nominees available",
-        description: "This category doesn't have any nominees to vote for yet.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      // For demo purposes, vote for the first nominee in the category
-      const firstNominee = category.nominees[0];
-      await voteMutation.mutateAsync({ nomineeId: firstNominee.id });
-      
-      setShowVoteSuccess(categoryId);
-      setTimeout(() => setShowVoteSuccess(null), 3000);
-      
-      toast({
-        title: "Vote recorded!",
-        description: `Thank you for voting in the ${category.name} category.`,
-      });
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || "Failed to record vote. Please try again.";
-      toast({
-        title: "Vote failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
-    }
+    // Redirect to nominees page instead of auto-voting
+    navigate(`/nominees?category=${categoryId}`);
+    handleScrollToTop();
   };
 
   const hasVoted = (categoryId: number) => votedCategoryIds.has(categoryId);
@@ -91,12 +74,12 @@ const Categories = () => {
   const CategoryCard = ({ category, index }: { category: any; index: number }) => {
     const userHasVoted = hasVoted(category.id);
     const showingSuccess = showVoteSuccess === category.id;
-    const isActive = category.is_voting_active;
+    const isActive = category.voting_open;
     const isVoting = voteMutation.isPending;
     
     return (
       <div 
-        className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border border-face-sky-blue/10 overflow-hidden"
+        className="group relative bg-face-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border border-face-sky-blue/10 overflow-hidden"
         onMouseEnter={() => setHoveredCard(category.id)}
         onMouseLeave={() => setHoveredCard(null)}
         style={{
@@ -105,7 +88,7 @@ const Categories = () => {
       >
         {/* Success notification */}
         {showingSuccess && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg animate-bounce">
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-green-500 text-face-white px-4 py-2 rounded-full shadow-lg animate-bounce">
             <CheckCircle className="inline h-4 w-4 mr-2" />
             Vote recorded!
           </div>
@@ -117,15 +100,18 @@ const Categories = () => {
             src={category.image_url || `https://images.pexels.com/photos/2004161/pexels-photo-2004161.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop`}
             alt={category.name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            onError={(e) => {
+              e.currentTarget.src = 'https://images.pexels.com/photos/2004161/pexels-photo-2004161.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop';
+            }}
           />
-          <div className={`absolute inset-0 bg-gradient-to-t ${category.color || 'from-blue-500 to-cyan-500'} opacity-60 group-hover:opacity-80 transition-opacity duration-300`}></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-face-sky-blue/80 via-face-sky-blue/30 to-transparent group-hover:from-face-sky-blue-dark/80 transition-all duration-300"></div>
           
           {/* Status badge */}
           <div className="absolute top-4 right-4">
-            <div className={`px-4 py-2 rounded-full text-sm font-bold shadow-lg ${
+            <div className={`px-4 py-2 rounded-full text-sm font-bold shadow-lg font-manrope ${
               isActive 
-                ? 'bg-green-500 text-white' 
-                : 'bg-yellow-500 text-gray-900'
+                ? 'bg-green-500 text-face-white' 
+                : 'bg-face-gold text-face-grey'
             }`}>
               {isActive ? 'Voting Open' : 'Coming Soon'}
             </div>
@@ -134,7 +120,7 @@ const Categories = () => {
           {/* Vote status indicator */}
           {userHasVoted && (
             <div className="absolute top-4 left-4">
-              <div className="bg-green-500 text-white p-2 rounded-full shadow-lg">
+              <div className="bg-green-500 text-face-white p-2 rounded-full shadow-lg">
                 <CheckCircle className="h-5 w-5" />
               </div>
             </div>
@@ -142,15 +128,15 @@ const Categories = () => {
 
           {/* Icon */}
           <div className={`absolute ${userHasVoted ? 'top-16 left-4' : 'top-4 left-4'}`}>
-            <div className="bg-white/20 backdrop-blur-sm p-3 rounded-full shadow-lg">
-              <Award className="h-6 w-6 text-white" />
+            <div className="bg-face-white/20 backdrop-blur-sm p-3 rounded-full shadow-lg">
+              <Award className="h-6 w-6 text-face-white" />
             </div>
           </div>
 
           {/* Region badge */}
           <div className="absolute bottom-4 left-4">
-            <div className="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
-              <span className="text-gray-800 font-bold text-sm flex items-center">
+            <div className="bg-face-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+              <span className="text-face-grey font-bold text-sm flex items-center font-manrope">
                 <Globe className="h-4 w-4 mr-2" />
                 {category.region}
               </span>
@@ -160,24 +146,19 @@ const Categories = () => {
           {/* Vote button overlay */}
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
             {isActive ? (
-              <button 
+              <Button 
                 onClick={() => handleVote(category.id)}
-                disabled={userHasVoted || isVoting}
-                className={`px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform group-hover:scale-110 shadow-2xl ${
+                disabled={isVoting}
+                className={`px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform group-hover:scale-110 shadow-2xl font-manrope ${
                   userHasVoted
-                    ? 'bg-green-500 text-white cursor-default'
-                    : 'bg-white text-gray-900 hover:bg-face-sky-blue hover:text-white'
+                    ? 'bg-green-500 text-face-white cursor-default'
+                    : 'bg-face-white text-face-grey hover:bg-face-sky-blue hover:text-face-white'
                 }`}
               >
-                {isVoting ? (
-                  <>
-                    <Loader2 className="inline h-5 w-5 mr-2 animate-spin" />
-                    Voting...
-                  </>
-                ) : userHasVoted ? (
+                {userHasVoted ? (
                   <>
                     <CheckCircle className="inline h-5 w-5 mr-2" />
-                    Voted
+                    View Nominees
                   </>
                 ) : (
                   <>
@@ -185,15 +166,15 @@ const Categories = () => {
                     Vote Now
                   </>
                 )}
-              </button>
+              </Button>
             ) : (
-              <button 
+              <Button 
                 disabled
-                className="bg-gray-400 text-gray-600 cursor-not-allowed px-8 py-4 rounded-2xl font-bold text-lg"
+                className="bg-face-grey/60 text-face-white cursor-not-allowed px-8 py-4 rounded-2xl font-bold text-lg font-manrope"
               >
                 <Clock className="inline h-5 w-5 mr-2" />
                 Coming Soon
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -201,53 +182,57 @@ const Categories = () => {
         {/* Content */}
         <div className="p-8">
           <div className="mb-6">
-            <h3 className="text-2xl font-serif font-bold text-face-grey mb-3 group-hover:text-face-sky-blue transition-colors duration-300">
+            <h3 className="text-2xl font-clash font-bold text-face-grey mb-3 group-hover:text-face-sky-blue transition-colors duration-300">
               {category.name}
             </h3>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="text-face-grey/80 leading-relaxed font-manrope">
               {category.description}
             </p>
           </div>
 
           {/* Stats grid */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-face-sky-blue/5 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-face-sky-blue">{category.nominees_count || 0}</div>
-              <div className="text-sm text-gray-600">Nominees</div>
+            <div className="bg-face-sky-blue/5 rounded-xl p-4 text-center border border-face-sky-blue/10">
+              <div className="text-2xl font-bold text-face-sky-blue font-clash">{category.nominees_count || 0}</div>
+              <div className="text-sm text-face-grey/60 font-manrope">Nominees</div>
             </div>
-            <div className="bg-face-sky-blue/5 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-face-sky-blue">{category.total_votes?.toLocaleString() || '0'}</div>
-              <div className="text-sm text-gray-600">Votes</div>
+            <div className="bg-face-sky-blue/5 rounded-xl p-4 text-center border border-face-sky-blue/10">
+              <div className="text-2xl font-bold text-face-sky-blue font-clash">{category.total_votes?.toLocaleString() || '0'}</div>
+              <div className="text-sm text-face-grey/60 font-manrope">Votes</div>
             </div>
           </div>
 
           {/* Impact and countdown */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-              <span className="text-sm text-gray-600">Status:</span>
-              <span className={`font-bold ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
+            <div className="flex items-center justify-between p-4 bg-face-sky-blue/5 rounded-xl border border-face-sky-blue/10">
+              <span className="text-sm text-face-grey/60 font-manrope">Status:</span>
+              <span className={`font-bold font-manrope ${isActive ? 'text-green-600' : 'text-face-gold'}`}>
                 {isActive ? 'Voting Open' : 'Coming Soon'}
               </span>
             </div>
             
-            {isActive && category.voting_ends_at && (
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
-                <span className="text-sm text-gray-600">Ends in:</span>
-                <span className="font-bold text-green-600">
-                  {category.days_remaining || 0} days
+            {isActive && category.days_remaining !== undefined && (
+              <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200">
+                <span className="text-sm text-face-grey/60 font-manrope">Ends in:</span>
+                <span className="font-bold text-green-600 font-manrope">
+                  {category.days_remaining} day{category.days_remaining !== 1 ? 's' : ''}
                 </span>
               </div>
             )}
           </div>
 
           {/* Action row */}
-          <div className="mt-6 pt-6 border-t border-gray-100">
+          <div className="mt-6 pt-6 border-t border-face-sky-blue/10">
             <div className="flex items-center justify-between">
-              <button className="text-face-sky-blue hover:text-face-sky-blue-dark font-medium transition-colors">
+              <Button
+                variant="ghost"
+                onClick={() => handleViewNominees(category.id)}
+                className="text-face-sky-blue hover:text-face-sky-blue-dark hover:bg-face-sky-blue/5 font-medium transition-colors font-manrope"
+              >
                 <Eye className="inline h-4 w-4 mr-2" />
                 View Nominees
-              </button>
-              <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-face-sky-blue group-hover:translate-x-1 transition-all duration-300" />
+              </Button>
+              <ChevronRight className="h-5 w-5 text-face-grey/40 group-hover:text-face-sky-blue group-hover:translate-x-1 transition-all duration-300" />
             </div>
           </div>
         </div>
@@ -258,12 +243,12 @@ const Categories = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
+      <div className="min-h-screen bg-gradient-to-br from-face-white via-face-sky-blue/5 to-face-sky-blue/10">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-face-sky-blue mx-auto mb-4" />
-            <p className="text-xl text-gray-600">Loading categories...</p>
+            <p className="text-xl text-face-grey/60 font-manrope">Loading categories...</p>
           </div>
         </div>
         <Footer />
@@ -274,18 +259,18 @@ const Categories = () => {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
+      <div className="min-h-screen bg-gradient-to-br from-face-white via-face-sky-blue/5 to-face-sky-blue/10">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-xl text-gray-600 mb-4">Failed to load categories</p>
-            <button 
+            <p className="text-xl text-face-grey/60 mb-4 font-manrope">Failed to load categories</p>
+            <Button 
               onClick={() => window.location.reload()} 
-              className="bg-face-sky-blue text-white px-6 py-2 rounded-lg hover:bg-face-sky-blue-dark transition-colors"
+              className="bg-face-sky-blue text-face-white px-6 py-2 rounded-lg hover:bg-face-sky-blue-dark transition-colors font-manrope"
             >
               Try Again
-            </button>
+            </Button>
           </div>
         </div>
         <Footer />
@@ -294,7 +279,7 @@ const Categories = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
+    <div className="min-h-screen bg-gradient-to-br from-face-white via-face-sky-blue/5 to-face-sky-blue/10">
       <Navbar />
       
       {/* Custom styles */}
@@ -356,10 +341,10 @@ const Categories = () => {
         
         {/* Animated decorative elements */}
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-20 left-10 w-32 h-32 border-4 border-white rounded-full animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-24 h-24 border-4 border-white transform rotate-45 animate-bounce"></div>
-          <div className="absolute bottom-40 left-20 w-16 h-16 bg-white rounded-full animate-float"></div>
-          <div className="absolute top-60 right-40 w-20 h-20 border-2 border-white transform rotate-12 animate-spin" style={{animationDuration: '8s'}}></div>
+          <div className="absolute top-20 left-10 w-32 h-32 border-4 border-face-white rounded-full animate-pulse"></div>
+          <div className="absolute top-40 right-20 w-24 h-24 border-4 border-face-white transform rotate-45 animate-bounce"></div>
+          <div className="absolute bottom-40 left-20 w-16 h-16 bg-face-white rounded-full animate-float"></div>
+          <div className="absolute top-60 right-40 w-20 h-20 border-2 border-face-white transform rotate-12 animate-spin" style={{animationDuration: '8s'}}></div>
         </div>
         
         {/* Floating particles */}
@@ -367,7 +352,7 @@ const Categories = () => {
           {[...Array(15)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-2 h-2 bg-white/20 rounded-full animate-float"
+              className="absolute w-2 h-2 bg-face-white/20 rounded-full animate-float"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -380,52 +365,56 @@ const Categories = () => {
         
         <div className="relative container mx-auto px-4 z-10">
           <div className="max-w-5xl mx-auto text-center">
-            {/* Extraordinary icon */}
-            <div className="inline-flex items-center justify-center w-28 h-28 bg-white/20 backdrop-blur-sm rounded-full mb-8 shadow-2xl animate-pulse-glow">
-              <Award className="h-14 w-14 text-white animate-float" />
+            {/* Logo icon */}
+            <div className="inline-flex items-center justify-center w-28 h-28 bg-face-white/20 backdrop-blur-sm rounded-full mb-8 shadow-2xl animate-pulse-glow">
+              <img 
+                src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
+                alt="FACE Awards Logo" 
+                className="h-14 w-auto animate-float"
+              />
             </div>
             
             {/* Main heading */}
-            <h1 className="text-6xl md:text-8xl font-serif font-bold mb-8 text-white leading-tight">
-              Award <span className="bg-gradient-to-r from-white via-face-sky-blue-light to-white bg-clip-text text-transparent">Categories</span>
+            <h1 className="text-6xl md:text-8xl font-clash font-bold mb-8 text-face-white leading-tight">
+              Award <span className="bg-gradient-to-r from-face-white via-face-sky-blue-light to-face-white bg-clip-text text-transparent">Categories</span>
             </h1>
             
             {/* Subtitle */}
-            <p className="text-2xl md:text-3xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed font-medium">
+            <p className="text-2xl md:text-3xl text-face-white/90 mb-12 max-w-4xl mx-auto leading-relaxed font-medium font-manrope">
               Discover the diverse categories recognizing excellence across industries and borders. Vote for your favorites!
             </p>
             
             {/* Voting info */}
-            <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl p-6 max-w-2xl mx-auto mb-12">
-              <div className="flex items-center justify-center gap-3 text-white text-lg">
+            <div className="bg-face-white/20 backdrop-blur-sm border border-face-white/30 rounded-2xl p-6 max-w-2xl mx-auto mb-12">
+              <div className="flex items-center justify-center gap-3 text-face-white text-lg">
                 <AlertCircle className="h-6 w-6 flex-shrink-0" />
-                <p>
+                <p className="font-manrope">
                   <span className="font-bold">One vote per category.</span> We track IP addresses to ensure fair voting.
                 </p>
               </div>
             </div>
             
             {/* Floating stats */}
-            <div className="flex flex-wrap justify-center gap-8 text-lg text-white">
-              <div className="flex items-center gap-4 bg-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-white/40 hover:bg-white/40 transition-all duration-300 transform hover:scale-105">
-                <Trophy className="h-7 w-7 text-white" />
+            <div className="flex flex-wrap justify-center gap-8 text-lg text-face-white">
+              <div className="flex items-center gap-4 bg-face-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-face-white/40 hover:bg-face-white/40 transition-all duration-300 transform hover:scale-105">
+                <Trophy className="h-7 w-7 text-face-white" />
                 <div className="text-left">
-                  <div className="font-bold text-xl">{stats?.active_voting_categories || categories.filter(c => c.is_voting_active).length}</div>
-                  <div className="text-sm opacity-90">Active Categories</div>
+                  <div className="font-bold text-xl font-clash">{stats?.active_voting_categories || categories.filter(c => c.voting_open).length}</div>
+                  <div className="text-sm opacity-90 font-manrope">Active Categories</div>
                 </div>
               </div>
-              <div className="flex items-center gap-4 bg-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-white/40 hover:bg-white/40 transition-all duration-300 transform hover:scale-105">
-                <Users className="h-7 w-7 text-white" />
+              <div className="flex items-center gap-4 bg-face-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-face-white/40 hover:bg-face-white/40 transition-all duration-300 transform hover:scale-105">
+                <Users className="h-7 w-7 text-face-white" />
                 <div className="text-left">
-                  <div className="font-bold text-xl">{stats?.total_nominees || categories.reduce((sum, cat) => sum + (cat.nominees_count || 0), 0)}</div>
-                  <div className="text-sm opacity-90">Total Nominees</div>
+                  <div className="font-bold text-xl font-clash">{stats?.total_nominees || categories.reduce((sum, cat) => sum + (cat.nominees_count || 0), 0)}</div>
+                  <div className="text-sm opacity-90 font-manrope">Total Nominees</div>
                 </div>
               </div>
-              <div className="flex items-center gap-4 bg-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-white/40 hover:bg-white/40 transition-all duration-300 transform hover:scale-105">
-                <Vote className="h-7 w-7 text-white" />
+              <div className="flex items-center gap-4 bg-face-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-face-white/40 hover:bg-face-white/40 transition-all duration-300 transform hover:scale-105">
+                <Vote className="h-7 w-7 text-face-white" />
                 <div className="text-left">
-                  <div className="font-bold text-xl">{stats?.total_votes?.toLocaleString() || '0'}</div>
-                  <div className="text-sm opacity-90">Total Votes</div>
+                  <div className="font-bold text-xl font-clash">{stats?.total_votes?.toLocaleString() || '0'}</div>
+                  <div className="text-sm opacity-90 font-manrope">Total Votes</div>
                 </div>
               </div>
             </div>
@@ -451,41 +440,43 @@ const Categories = () => {
       </section>
 
       {/* Regional Navigation */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-face-white">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-serif font-bold text-face-grey mb-4">
+              <h2 className="text-4xl font-clash font-bold text-face-grey mb-4">
                 <Globe className="inline h-10 w-10 text-face-sky-blue mr-3" />
                 Explore by Region
               </h2>
-              <p className="text-xl text-gray-600">Categories span across continents, celebrating global excellence</p>
+              <p className="text-xl text-face-grey/60 font-manrope">Categories span across continents, celebrating global excellence</p>
             </div>
             
             <div className="flex justify-center mb-12">
-              <div className="bg-gray-100 p-2 rounded-2xl shadow-xl border border-face-sky-blue/20">
-                <button
+              <div className="bg-face-sky-blue/5 p-2 rounded-2xl shadow-xl border border-face-sky-blue/20">
+                <Button
                   onClick={() => setActiveTab("all")}
-                  className={`px-8 py-4 mx-1 text-lg font-medium rounded-xl transition-all duration-300 ${
+                  variant={activeTab === "all" ? "default" : "ghost"}
+                  className={`px-8 py-4 mx-1 text-lg font-medium rounded-xl transition-all duration-300 font-manrope ${
                     activeTab === "all"
-                      ? 'bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark text-white shadow-xl transform scale-105'
-                      : 'text-gray-600 hover:bg-white hover:text-face-sky-blue'
+                      ? 'bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark text-face-white shadow-xl transform scale-105'
+                      : 'text-face-grey/60 hover:bg-face-white hover:text-face-sky-blue'
                   }`}
                 >
                   All Regions
-                </button>
+                </Button>
                 {regions.map((region) => (
-                  <button
+                  <Button
                     key={region}
                     onClick={() => setActiveTab(region)}
-                    className={`px-8 py-4 mx-1 text-lg font-medium rounded-xl transition-all duration-300 ${
+                    variant={activeTab === region ? "default" : "ghost"}
+                    className={`px-8 py-4 mx-1 text-lg font-medium rounded-xl transition-all duration-300 font-manrope ${
                       activeTab === region
-                        ? 'bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark text-white shadow-xl transform scale-105'
-                        : 'text-gray-600 hover:bg-white hover:text-face-sky-blue'
+                        ? 'bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark text-face-white shadow-xl transform scale-105'
+                        : 'text-face-grey/60 hover:bg-face-white hover:text-face-sky-blue'
                     }`}
                   >
                     {region}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -494,14 +485,14 @@ const Categories = () => {
       </section>
       
       {/* Categories Grid */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-face-sky-blue/5">
+      <section className="py-20 bg-gradient-to-br from-face-sky-blue/5 to-face-sky-blue/10">
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-serif font-bold text-face-grey mb-4">
+              <h2 className="text-4xl font-clash font-bold text-face-grey mb-4">
                 Categories of <span className="text-face-sky-blue">Excellence</span>
               </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              <p className="text-xl text-face-grey/60 max-w-3xl mx-auto font-manrope">
                 Each category represents a unique domain where exceptional achievements are recognized and celebrated
               </p>
             </div>
@@ -514,10 +505,10 @@ const Categories = () => {
               </div>
             ) : (
               <div className="text-center py-20">
-                <div className="bg-white rounded-3xl p-12 shadow-xl border border-face-sky-blue/20 max-w-md mx-auto">
-                  <Sparkles className="h-16 w-16 text-gray-400 mx-auto mb-6" />
-                  <h3 className="text-2xl font-bold text-gray-700 mb-4">No Categories Found</h3>
-                  <p className="text-gray-500 text-lg">
+                <div className="bg-face-white rounded-3xl p-12 shadow-xl border border-face-sky-blue/20 max-w-md mx-auto">
+                  <Sparkles className="h-16 w-16 text-face-grey/40 mx-auto mb-6" />
+                  <h3 className="text-2xl font-bold text-face-grey mb-4 font-clash">No Categories Found</h3>
+                  <p className="text-face-grey/60 text-lg font-manrope">
                     No categories found for the selected region. Try selecting a different region.
                   </p>
                 </div>
@@ -527,86 +518,39 @@ const Categories = () => {
         </div>
       </section>
 
-      {/* Countdown and Stats */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12">
-              {/* Live countdown */}
-              <div className="bg-gradient-to-br from-face-sky-blue to-face-sky-blue-dark rounded-3xl p-8 text-white shadow-2xl">
-                <div className="text-center">
-                  <Clock className="h-12 w-12 mx-auto mb-6 animate-float" />
-                  <h3 className="text-3xl font-serif font-bold mb-4">Voting Ends Soon</h3>
-                  <p className="text-xl mb-8 opacity-90">Current voting period closes in:</p>
-                  
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="text-3xl font-bold">15</div>
-                      <div className="text-sm opacity-90">Days</div>
-                    </div>
-                    <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="text-3xl font-bold">07</div>
-                      <div className="text-sm opacity-90">Hours</div>
-                    </div>
-                    <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="text-3xl font-bold">23</div>
-                      <div className="text-sm opacity-90">Minutes</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Impact stats */}
-              <div className="bg-gradient-to-br from-white to-face-sky-blue/5 rounded-3xl p-8 border border-face-sky-blue/20 shadow-xl">
-                <div className="text-center">
-                  <TrendingUp className="h-12 w-12 text-face-sky-blue mx-auto mb-6" />
-                  <h3 className="text-3xl font-serif font-bold text-face-grey mb-6">Global Impact</h3>
-                  
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-face-sky-blue mb-2">5M+</div>
-                      <div className="text-gray-600">Lives Impacted</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-face-sky-blue mb-2">{stats?.regions?.length || 5}+</div>
-                      <div className="text-gray-600">Regions Represented</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-face-sky-blue mb-2">85%</div>
-                      <div className="text-gray-600">Positive Change</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-face-sky-blue mb-2">15</div>
-                      <div className="text-gray-600">Years of Excellence</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Call to Action */}
       <section className="py-20 bg-gradient-to-r from-face-sky-blue via-face-sky-blue-dark to-face-grey">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
-            <Star className="h-16 w-16 text-white mx-auto mb-8 animate-float" />
-            <h2 className="text-5xl font-serif font-bold mb-8 text-white">
+            <Star className="h-16 w-16 text-face-white mx-auto mb-8 animate-float" />
+            <h2 className="text-5xl font-clash font-bold mb-8 text-face-white">
               Ready to Make Your Mark?
             </h2>
-            <p className="text-2xl text-white/90 mb-12 leading-relaxed">
+            <p className="text-2xl text-face-white/90 mb-12 leading-relaxed font-manrope">
               Join the community of excellence and help recognize outstanding achievements worldwide
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <button className="bg-white text-face-sky-blue hover:bg-face-sky-blue hover:text-white border-4 border-white hover:border-white shadow-2xl text-xl font-bold py-5 px-12 rounded-2xl transform hover:scale-105 transition-all duration-300">
+              <Button 
+                onClick={() => {
+                  navigate('/nominees');
+                  handleScrollToTop();
+                }}
+                className="bg-face-white text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white border-4 border-face-white hover:border-face-white shadow-2xl text-xl font-bold py-5 px-12 rounded-2xl transform hover:scale-105 transition-all duration-300 font-manrope"
+              >
                 <Vote className="inline h-6 w-6 mr-3" />
                 Start Voting Now
-              </button>
-              <button className="border-4 border-white bg-transparent text-white hover:bg-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-5 px-12 rounded-2xl transform hover:scale-105 transition-all duration-300">
+              </Button>
+              <Button 
+                onClick={() => {
+                  navigate('/registration');
+                  handleScrollToTop();
+                }}
+                variant="outline"
+                className="border-4 border-face-white bg-transparent text-face-white hover:bg-face-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-5 px-12 rounded-2xl transform hover:scale-105 transition-all duration-300 font-manrope"
+              >
                 <Trophy className="inline h-6 w-6 mr-3" />
-                Submit Nomination
-              </button>
+                Register for Event
+              </Button>
             </div>
           </div>
         </div>
