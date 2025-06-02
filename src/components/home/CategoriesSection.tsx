@@ -11,7 +11,7 @@ import {
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// Enhanced categories data with better representative images
+// Enhanced categories data with FACE brand colors only
 const categories = [
   {
     id: 1,
@@ -19,9 +19,9 @@ const categories = [
     description: "Honoring breakthrough technological advancements that transform industries and improve lives.",
     icon: "💻",
     nominees: 28,
-    color: "face-card",
+    color: "bg-white", // Changed from face-card to white
     textColor: "text-face-grey",
-    imageUrl: "https://images.pexels.com/photos/3782235/pexels-photo-3782235.jpeg", // AI/Tech innovation
+    imageUrl: "https://images.pexels.com/photos/3782235/pexels-photo-3782235.jpeg",
     criteria: [
       "Demonstrated significant technological breakthroughs within the past year",
       "Created solutions that address real-world challenges with measurable impact",
@@ -35,9 +35,9 @@ const categories = [
     description: "Recognizing visionary leaders who inspire teams and drive organizational success.",
     icon: "🏆",
     nominees: 42,
-    color: "face-card",
+    color: "bg-white", // Changed from face-card to white
     textColor: "text-face-grey",
-    imageUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a", // Business leadership
+    imageUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a",
     criteria: [
       "Led organizations or teams to exceptional performance and achievement",
       "Demonstrated ethical leadership and integrity in decision-making",
@@ -51,9 +51,9 @@ const categories = [
     description: "Celebrating individuals and organizations creating positive social change and addressing global challenges.",
     icon: "❤️",
     nominees: 35,
-    color: "face-card",
+    color: "bg-white", // Changed from face-card to white
     textColor: "text-face-grey",
-    imageUrl: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c", // Humanitarian aid/helping hands
+    imageUrl: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c",
     criteria: [
       "Implemented initiatives that directly improved the quality of life for vulnerable populations",
       "Demonstrated sustainable approaches to addressing humanitarian challenges",
@@ -67,9 +67,9 @@ const categories = [
     description: "Honoring initiatives that promote environmental responsibility and sustainable business practices.",
     icon: "🌱",
     nominees: 31,
-    color: "face-card",
+    color: "bg-white", // Changed from face-card to white
     textColor: "text-face-grey",
-    imageUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e", // Green forest/sustainability
+    imageUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
     criteria: [
       "Pioneered sustainable practices that significantly reduce environmental impact",
       "Demonstrated measurable improvements in resource efficiency and conservation",
@@ -83,9 +83,9 @@ const categories = [
     description: "Recognizing exceptional talent and innovation in visual arts, performing arts, and creative expression.",
     icon: "🎨",
     nominees: 38,
-    color: "face-card",
+    color: "bg-white", // Changed from face-card to white
     textColor: "text-face-grey",
-    imageUrl: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b", // Art gallery/creative arts
+    imageUrl: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b",
     criteria: [
       "Produced creative works that demonstrate exceptional originality and artistic excellence",
       "Used creative expression to challenge perspectives and inspire dialogue",
@@ -99,9 +99,9 @@ const categories = [
     description: "Celebrating outstanding contributions to education, learning methodologies, and knowledge sharing.",
     icon: "📚",
     nominees: 27,
-    color: "face-card",
+    color: "bg-white", // Changed from face-card to white
     textColor: "text-face-grey",
-    imageUrl: "https://images.pexels.com/photos/1181643/pexels-photo-1181643.jpeg", // Education/classroom
+    imageUrl: "https://images.pexels.com/photos/1181643/pexels-photo-1181643.jpeg",
     criteria: [
       "Developed innovative teaching methods that measurably improve learning outcomes",
       "Expanded educational access to underserved or marginalized communities",

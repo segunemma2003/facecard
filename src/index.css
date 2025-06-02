@@ -1,3 +1,5 @@
+/* Updated src/index.css - Remove all purple outlines and yellow colors */
+
 @import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -89,6 +91,8 @@
 @layer base {
   * {
     @apply border-border;
+    /* Remove all default focus outlines including purple ones */
+    outline: none;
   }
 
   body {
@@ -105,10 +109,34 @@
   p, span, a, button, input, select, textarea {
     font-family: 'Manrope', sans-serif;
   }
+
+  /* Remove focus outlines from all interactive elements */
+  input, button, select, textarea, a {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Custom focus states using FACE brand colors only */
+  input:focus, select:focus, textarea:focus {
+    border-color: rgb(135 206 235) !important;
+    box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.2) !important;
+    outline: none !important;
+  }
+
+  button:focus {
+    box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.3) !important;
+    outline: none !important;
+  }
+
+  a:focus {
+    text-decoration: underline;
+    color: rgb(135 206 235) !important;
+    outline: none !important;
+  }
 }
 
 @layer components {
-  /* FACE Brand Specific Components */
+  /* FACE Brand Specific Components - No Purple or Yellow */
   .face-gradient {
     @apply bg-gradient-to-r from-face-sky-blue via-face-sky-blue-light to-face-white;
   }
@@ -123,14 +151,17 @@
   
   .face-btn-primary {
     @apply bg-face-sky-blue text-face-white font-semibold px-6 py-3 rounded-lg border-2 border-face-sky-blue shadow-lg hover:bg-face-sky-blue-dark hover:border-face-sky-blue-dark transition-all duration-300 hover:scale-105;
+    outline: none !important;
   }
 
   .face-btn-secondary {
     @apply bg-face-white text-face-sky-blue font-semibold px-6 py-3 rounded-lg border-2 border-face-sky-blue shadow-lg hover:bg-face-sky-blue hover:text-face-white transition-all duration-300 hover:scale-105;
+    outline: none !important;
   }
 
   .face-btn-grey {
     @apply bg-face-grey text-face-white font-semibold px-6 py-3 rounded-lg border-2 border-face-grey shadow-lg hover:bg-face-grey-light hover:border-face-grey-light transition-all duration-300 hover:scale-105;
+    outline: none !important;
   }
 
   .face-section {
@@ -189,7 +220,7 @@ html, body, #root {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar styling */
+/* Custom scrollbar styling - FACE brand colors only */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -212,14 +243,27 @@ html, body, #root {
   .face-section {
     @apply py-16 px-4;
   }
+  
+  /* Ensure no purple outlines on mobile */
+  * {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  
+  input, button, select, textarea, a {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-appearance: none !important;
+  }
 }
 
-/* Focus states for accessibility */
+/* Focus states for accessibility - FACE brand colors only */
 .focus\:face-ring:focus {
   @apply ring-2 ring-face-sky-blue ring-offset-2 ring-offset-face-white;
+  outline: none !important;
 }
 
-/* Animation utilities */
+/* Animation utilities - Remove any yellow colors */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-20px); }
@@ -238,225 +282,288 @@ html, body, #root {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Add this CSS to your global styles or component styles to fix purple outlines and yellow colors */
-
-/* Remove default purple/blue outlines on mobile and replace with FACE brand colors */
-*:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important; /* face-sky-blue with opacity */
+/* Remove any remaining purple or yellow colors */
+*[class*="purple"], *[class*="violet"], *[class*="yellow"], *[class*="amber"] {
+  color: rgb(135 206 235) !important;
+  border-color: rgb(135 206 235) !important;
+  background-color: transparent !important;
 }
 
-/* Fix button focus states */
-button:focus,
-.btn:focus,
-[role="button"]:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
-  border-color: #87CEEB !important; /* face-sky-blue */
+/* Override any Tailwind purple or yellow classes */
+.bg-purple-50, .bg-purple-100, .bg-purple-500, .bg-yellow-50, .bg-yellow-100, .bg-yellow-500,
+.text-purple-600, .text-purple-500, .text-yellow-600, .text-yellow-500,
+.border-purple-500, .border-yellow-500 {
+  background-color: rgba(135, 206, 235, 0.1) !important;
+  color: rgb(135 206 235) !important;
+  border-color: rgb(135 206 235) !important;
 }
 
-/* Fix input and select focus states */
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none !important;
-  border-color: #87CEEB !important; /* face-sky-blue */
-  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.3) !important;
-}
-
-/* Fix dropdown menu focus states */
-[role="menu"] button:focus,
-[role="menuitem"]:focus,
-.dropdown-item:focus {
-  outline: none !important;
-  background-color: rgba(135, 206, 235, 0.1) !important; /* face-sky-blue with low opacity */
-  color: #87CEEB !important; /* face-sky-blue */
-}
-
-/* Fix tab focus states */
-[role="tab"]:focus,
-.tab-trigger:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
-}
-
-/* Fix card focus states */
-.card:focus,
-.face-card:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.3), 0 4px 12px rgba(135, 206, 235, 0.2) !important;
-}
-
-/* Remove yellow colors and replace with FACE brand colors */
-.bg-yellow-400,
-.bg-yellow-500 {
-  background-color: #87CEEB !important; /* face-sky-blue */
-}
-
-.text-yellow-400,
-.text-yellow-500 {
-  color: #87CEEB !important; /* face-sky-blue */
-}
-
-.border-yellow-400,
-.border-yellow-500 {
-  border-color: #87CEEB !important; /* face-sky-blue */
-}
-
-/* Fix hover states for yellow elements */
-.hover\:bg-yellow-300:hover,
-.hover\:bg-yellow-500:hover {
-  background-color: #5BA3CC !important; /* face-sky-blue-dark */
-}
-
-/* Fix Cast Your Vote button specifically */
-.hero-vote-button:focus,
-.vote-button:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.4) !important;
-  border-color: #87CEEB !important;
-}
-
-/* Fix Badge components */
-.badge {
-  background-color: #87CEEB !important; /* face-sky-blue */
-  color: white !important;
-  border: 1px solid #87CEEB !important;
-}
-
-.badge:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
-}
-
-/* Fix dropdown components */
-.select-trigger:focus,
-.dropdown-trigger:focus {
-  outline: none !important;
-  border-color: #87CEEB !important;
-  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.3) !important;
-}
-
-/* Fix mobile webkit appearance */
-input[type="button"],
-input[type="submit"],
-button {
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
-}
-
-/* Fix select dropdown on mobile */
-select {
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%2387CEEB' d='M6 9L1.5 4.5h9z'/></svg>") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 10px center !important;
-}
-
-/* Fix carousel navigation buttons */
-.carousel-prev:focus,
-.carousel-next:focus {
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
-}
-
-/* Fix mobile touch highlights */
+/* Ensure no tap highlights on mobile */
 * {
-  -webkit-tap-highlight-color: rgba(135, 206, 235, 0.3) !important;
+  -webkit-tap-highlight-color: transparent !important;
   -webkit-touch-callout: none !important;
-  -webkit-user-select: none !important;
-  -khtml-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-  user-select: none !important;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
-/* Allow text selection for content */
-p, span, div, h1, h2, h3, h4, h5, h6 {
+/* Allow text selection where needed */
+p, h1, h2, h3, h4, h5, h6, span, div {
   -webkit-user-select: text !important;
-  -khtml-user-select: text !important;
   -moz-user-select: text !important;
   -ms-user-select: text !important;
   user-select: text !important;
 }
 
-/* Specific fixes for component classes */
-.bg-face-gold {
-  background-color: #87CEEB !important; /* Replace gold with sky blue */
-}
-
-.text-face-gold {
-  color: #87CEEB !important; /* Replace gold with sky blue */
-}
-
-.border-face-gold {
-  border-color: #87CEEB !important; /* Replace gold with sky blue */
-}
-
-/* Fix registration card focus */
-.registration-card:focus {
+*,
+*::before,
+*::after {
   outline: none !important;
-  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.4), 0 8px 24px rgba(135, 206, 235, 0.2) !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
 }
 
-/* Fix mobile menu items */
-.mobile-menu-item:focus {
+/* Remove focus ring from all interactive elements */
+button,
+input,
+select,
+textarea,
+a,
+[tabindex],
+[role="button"],
+[role="link"],
+.btn,
+.button {
   outline: none !important;
-  background-color: rgba(135, 206, 235, 0.1) !important;
-  color: #87CEEB !important;
+  border-radius: 0.5rem;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
 }
 
-/* Fix navigation dropdown items */
-.nav-dropdown-item:focus {
-  outline: none !important;
-  background-color: rgba(135, 206, 235, 0.1) !important;
-  color: #87CEEB !important;
-}
-
-/* Remove any remaining purple/violet colors */
-.bg-purple-500,
-.bg-violet-500 {
-  background-color: #87CEEB !important;
-}
-
-.text-purple-500,
-.text-violet-500 {
-  color: #87CEEB !important;
-}
-
-.border-purple-500,
-.border-violet-500 {
-  border-color: #87CEEB !important;
-}
-
-/* Ensure consistent brand colors for all interactive elements */
-.interactive-element:focus,
-.clickable:focus,
+/* Custom focus states using FACE brand colors only */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+a:focus,
 [tabindex]:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
+  border-color: rgb(135, 206, 235) !important;
+}
+
+/* Remove default browser focus styles completely */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
+}
+
+/* Mobile specific fixes */
+@media (max-width: 768px) {
+  * {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection where needed */
+  p, h1, h2, h3, h4, h5, h6, span, div, article, section {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+  }
+
+  /* Remove input highlighting on mobile */
+  input,
+  textarea,
+  select,
+  button {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-appearance: none !important;
+    outline: none !important;
+  }
+
+  /* iOS Safari specific fixes */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    outline: none !important;
+    border-radius: 0.5rem !important;
+  }
+
+  /* Remove blue highlight on tap for iOS */
+  a, button, input, select, textarea {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+}
+
+/* Specific component overrides */
+.face-btn-primary,
+.face-btn-secondary,
+.face-btn-grey {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.face-btn-primary:focus,
+.face-btn-secondary:focus,
+.face-btn-grey:focus {
   outline: none !important;
   box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
 }
 
-/* Fix any remaining focus rings */
+/* Navigation links */
+nav a,
+nav button,
+.navbar a,
+.navbar button {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+nav a:focus,
+nav button:focus,
+.navbar a:focus,
+.navbar button:focus {
+  outline: none !important;
+  color: rgb(135, 206, 235) !important;
+  text-decoration: underline;
+}
+
+/* Card and interactive elements */
+.card,
+.face-card,
+[role="button"],
+.cursor-pointer {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.card:focus,
+.face-card:focus,
+[role="button"]:focus,
+.cursor-pointer:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.3) !important;
+}
+
+/* Form elements */
+.form-control,
+.form-input,
+.form-select,
+.form-textarea {
+  outline: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+.form-control:focus,
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none !important;
+  border-color: rgb(135, 206, 235) !important;
+  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.2) !important;
+}
+
+/* Carousel and slider components */
+.carousel-button,
+.slider-button,
+[data-carousel-prev],
+[data-carousel-next] {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.carousel-button:focus,
+.slider-button:focus,
+[data-carousel-prev]:focus,
+[data-carousel-next]:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
+}
+
+/* Override any remaining purple/violet outlines */
+*[class*="ring-purple"],
+*[class*="ring-violet"],
+*[class*="focus:ring-purple"],
+*[class*="focus:ring-violet"],
+*[style*="purple"],
+*[style*="violet"] {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
+  border-color: rgb(135, 206, 235) !important;
+}
+
+/* Remove any yellow/amber colors as well */
+*[class*="ring-yellow"],
+*[class*="ring-amber"],
+*[class*="focus:ring-yellow"],
+*[class*="focus:ring-amber"],
+*[style*="yellow"],
+*[style*="amber"],
+.bg-yellow-400,
+.bg-amber-400,
+.text-yellow-400,
+.text-amber-400 {
+  color: rgb(135, 206, 235) !important;
+  background-color: rgba(135, 206, 235, 0.1) !important;
+  border-color: rgb(135, 206, 235) !important;
+}
+
+/* Force all focus states to use FACE brand colors */
+:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
+}
+
 :focus-visible {
   outline: none !important;
   box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.5) !important;
 }
 
-/* Responsive focus states for mobile */
-@media (max-width: 768px) {
-  *:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.4) !important; /* Larger focus ring on mobile */
-  }
-  
-  button:focus,
-  .btn:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.4) !important;
-    transform: scale(1.02) !important; /* Slight scale for better mobile feedback */
-  }
+/* Webkit autofill styling */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: rgb(51, 51, 51) !important;
+  outline: none !important;
 }
+
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
