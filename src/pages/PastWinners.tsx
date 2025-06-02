@@ -1,197 +1,43 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Award, Filter, Trophy, Star, Crown, Sparkles, Medal, Users, TrendingUp, Calendar, Eye, ChevronRight, Globe, Heart } from 'lucide-react';
-
-// Enhanced past winners data with more details
-const pastWinnersData = {
-  "2023": [
-    {
-      id: 1,
-      name: "Dr. Sarah Chen",
-      category: "Technology Innovation",
-      achievement: "Revolutionary AI healthcare diagnostics platform",
-      description: "Developed an AI-powered diagnostic system that has improved healthcare outcomes for over 2 million patients worldwide, with 94% accuracy in early disease detection.",
-      imageUrl: "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "2M+ patients helped",
-      country: "Singapore",
-      yearWon: "2023",
-      bgColor: "from-blue-500 to-cyan-500"
-    },
-    {
-      id: 2,
-      name: "EcoSolutions Inc.",
-      category: "Sustainable Development",
-      achievement: "Pioneering carbon-negative manufacturing processes",
-      description: "Created revolutionary manufacturing techniques that not only eliminate carbon emissions but actually remove CO2 from the atmosphere, setting new industry standards.",
-      imageUrl: "https://images.pexels.com/photos/323705/pexels-photo-323705.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "Carbon-negative impact",
-      country: "Germany",
-      yearWon: "2023",
-      bgColor: "from-green-500 to-teal-500"
-    },
-    {
-      id: 3,
-      name: "James Rodriguez",
-      category: "Creative Arts",
-      achievement: "Groundbreaking digital art fusion and virtual reality exhibitions",
-      description: "Pioneered immersive VR art experiences that have been featured in over 50 galleries worldwide, transforming how people interact with digital creativity.",
-      imageUrl: "https://images.pexels.com/photos/5212317/pexels-photo-5212317.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "50+ galleries worldwide",
-      country: "Mexico",
-      yearWon: "2023",
-      bgColor: "from-purple-500 to-pink-500"
-    },
-    {
-      id: 8,
-      name: "Maya Johnson",
-      category: "Educational Excellence",
-      achievement: "Innovative educational methodologies for neurodivergent children",
-      description: "Developed specialized learning techniques that have helped over 10,000 neurodivergent children achieve academic success and improved social integration.",
-      imageUrl: "https://images.pexels.com/photos/5669602/pexels-photo-5669602.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "10K+ children supported",
-      country: "Canada",
-      yearWon: "2023",
-      bgColor: "from-indigo-500 to-blue-500"
-    },
-    {
-      id: 9,
-      name: "Global Health Initiative",
-      category: "Humanitarian Impact",
-      achievement: "Providing healthcare access to over 100,000 people in conflict zones",
-      description: "Established mobile healthcare units and telemedicine networks in war-torn regions, providing critical medical care to vulnerable populations.",
-      imageUrl: "https://images.pexels.com/photos/6129507/pexels-photo-6129507.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "100K+ lives saved",
-      country: "International",
-      yearWon: "2023",
-      bgColor: "from-red-500 to-orange-500"
-    }
-  ],
-  "2022": [
-    {
-      id: 4,
-      name: "GlobalEdu Foundation",
-      category: "Educational Excellence",
-      achievement: "Expanding access to quality education in underserved communities",
-      description: "Built educational infrastructure and trained teachers in 200+ rural communities, providing quality education access to over 50,000 children.",
-      imageUrl: "https://images.pexels.com/photos/5212700/pexels-photo-5212700.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "50K+ students reached",
-      country: "Kenya",
-      yearWon: "2022",
-      bgColor: "from-yellow-500 to-orange-500"
-    },
-    {
-      id: 5,
-      name: "Maria Santos",
-      category: "Humanitarian Impact",
-      achievement: "Leading refugee resettlement and integration programs",
-      description: "Coordinated successful resettlement of 5,000+ refugees across 12 countries, with 95% successful integration rate into local communities.",
-      imageUrl: "https://images.pexels.com/photos/6995688/pexels-photo-6995688.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "5K+ refugees helped",
-      country: "Brazil",
-      yearWon: "2022",
-      bgColor: "from-rose-500 to-pink-500"
-    },
-    {
-      id: 10,
-      name: "SustainTech Solutions",
-      category: "Technology Innovation",
-      achievement: "Creating IoT solutions for sustainable agriculture",
-      description: "Developed smart farming systems that increased crop yields by 40% while reducing water usage by 60% across 1,000+ farms globally.",
-      imageUrl: "https://images.pexels.com/photos/2004161/pexels-photo-2004161.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "1K+ farms optimized",
-      country: "Netherlands",
-      yearWon: "2022",
-      bgColor: "from-emerald-500 to-green-500"
-    },
-    {
-      id: 11,
-      name: "Dr. Ahmed Khan",
-      category: "Leadership Excellence",
-      achievement: "Pioneering leadership in cross-cultural medical research",
-      description: "Led groundbreaking international medical research collaborations that resulted in 3 new treatments and improved healthcare protocols worldwide.",
-      imageUrl: "https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "3 new treatments developed",
-      country: "UAE",
-      yearWon: "2022",
-      bgColor: "from-violet-500 to-purple-500"
-    }
-  ],
-  "2021": [
-    {
-      id: 6,
-      name: "Robert Kiyoshi",
-      category: "Leadership Excellence",
-      achievement: "Transforming organizational culture and business performance",
-      description: "Revolutionized corporate culture at Fortune 500 companies, improving employee satisfaction by 80% and increasing productivity by 45%.",
-      imageUrl: "https://images.pexels.com/photos/5668858/pexels-photo-5668858.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "80% satisfaction increase",
-      country: "Japan",
-      yearWon: "2021",
-      bgColor: "from-slate-500 to-gray-500"
-    },
-    {
-      id: 7,
-      name: "HealthTech Innovations",
-      category: "Technology Innovation",
-      achievement: "Developing accessible medical devices for remote areas",
-      description: "Created low-cost, portable medical devices that have brought essential healthcare technology to 500+ remote communities worldwide.",
-      imageUrl: "https://images.pexels.com/photos/356043/pexels-photo-356043.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "500+ communities served",
-      country: "India",
-      yearWon: "2021",
-      bgColor: "from-cyan-500 to-blue-500"
-    },
-    {
-      id: 12,
-      name: "Clean Ocean Project",
-      category: "Sustainable Development",
-      achievement: "Removing over 500 tons of plastic from ocean ecosystems",
-      description: "Developed innovative ocean cleanup technology and community programs that have removed 500+ tons of plastic waste from marine environments.",
-      imageUrl: "https://images.pexels.com/photos/1619317/pexels-photo-1619317.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "500+ tons plastic removed",
-      country: "Australia",
-      yearWon: "2021",
-      bgColor: "from-blue-500 to-teal-500"
-    },
-    {
-      id: 13,
-      name: "Harmony Arts Collective",
-      category: "Creative Arts",
-      achievement: "Transforming urban spaces through community-led art installations",
-      description: "Created 100+ public art installations across 25 cities, fostering community engagement and cultural expression in urban environments.",
-      imageUrl: "https://images.pexels.com/photos/1181467/pexels-photo-1181467.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      impact: "100+ installations created",
-      country: "USA",
-      yearWon: "2021",
-      bgColor: "from-pink-500 to-rose-500"
-    }
-  ]
-};
-
-const years = ["2023", "2022", "2021"];
-const categories = ["All Categories", "Technology Innovation", "Leadership Excellence", "Humanitarian Impact", "Sustainable Development", "Creative Arts", "Educational Excellence"];
+import { Award, Filter, Trophy, Star, Crown, Sparkles, Medal, Users, TrendingUp, Calendar, Eye, ChevronRight, Globe, Heart, Loader2, AlertCircle } from 'lucide-react';
+import { usePastWinners, usePastWinnerYears, usePastWinnerCategories } from '@/hooks/useApi';
 
 const PastWinners = () => {
-  const [selectedYear, setSelectedYear] = useState("2023");
+  const [selectedYear, setSelectedYear] = useState<number>();
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [animateCards, setAnimateCards] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+
+  // API Hooks
+  const { data: winnersResponse, isLoading: winnersLoading, error: winnersError } = usePastWinners({
+    year: selectedYear,
+    category: selectedCategory === "All Categories" ? undefined : selectedCategory
+  });
+  const { data: yearsResponse } = usePastWinnerYears();
+  const { data: categoriesResponse } = usePastWinnerCategories();
+
+  const winners = winnersResponse?.data || [];
+  const years = yearsResponse?.data || [];
+  const categories = categoriesResponse?.data || [];
+
+  // Set default year to the most recent year
+  useEffect(() => {
+    if (years.length > 0 && !selectedYear) {
+      setSelectedYear(years[0]);
+    }
+  }, [years, selectedYear]);
 
   useEffect(() => {
     const timer = setTimeout(() => setAnimateCards(true), 300);
     return () => clearTimeout(timer);
   }, [selectedYear, selectedCategory]);
 
-  // Filter winners based on selected year and category
-  const filteredWinners = pastWinnersData[selectedYear].filter(winner => 
-    selectedCategory === "All Categories" || winner.category === selectedCategory
-  );
+  const totalWinners = winners.length;
+  const countriesRepresented = [...new Set(winners.map(w => w.organization))].length; // Using organization as proxy for country
 
-  const totalWinners = Object.values(pastWinnersData).flat().length;
-  const countriesRepresented = [...new Set(Object.values(pastWinnersData).flat().map(w => w.country))].length;
-
-  const WinnerCard = ({ winner, index }) => (
+  const WinnerCard = ({ winner, index }: { winner: any; index: number }) => (
     <div 
       className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border border-face-sky-blue/10 overflow-hidden"
       onMouseEnter={() => setHoveredCard(winner.id)}
@@ -210,25 +56,25 @@ const PastWinners = () => {
       {/* Year badge */}
       <div className="absolute top-4 left-4 z-10">
         <div className="bg-face-sky-blue text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-          {winner.yearWon} Winner
+          {winner.year} Winner
         </div>
       </div>
 
       {/* Image Container */}
       <div className="relative h-80 overflow-hidden">
         <img 
-          src={winner.imageUrl}
+          src={winner.image_url || `https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop`}
           alt={winner.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        <div className={`absolute inset-0 bg-gradient-to-t ${winner.bgColor} opacity-40 group-hover:opacity-60 transition-opacity duration-300`}></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-500 to-cyan-500 opacity-40 group-hover:opacity-60 transition-opacity duration-300"></div>
         
-        {/* Country badge */}
+        {/* Organization badge */}
         <div className="absolute bottom-4 left-4">
           <div className="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
             <span className="text-gray-800 font-bold text-sm flex items-center">
               <Globe className="h-4 w-4 mr-2" />
-              {winner.country}
+              {winner.organization}
             </span>
           </div>
         </div>
@@ -257,15 +103,15 @@ const PastWinners = () => {
           </h3>
           <h4 className="text-lg font-bold text-face-sky-blue mb-3">{winner.achievement}</h4>
           <p className="text-gray-600 leading-relaxed text-sm">
-            {winner.description}
+            {winner.achievement}
           </p>
         </div>
 
         {/* Impact section */}
         <div className="bg-face-sky-blue/5 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600 font-medium">Impact Achieved:</span>
-            <span className="font-bold text-face-sky-blue">{winner.impact}</span>
+            <span className="text-sm text-gray-600 font-medium">Organization:</span>
+            <span className="font-bold text-face-sky-blue">{winner.organization}</span>
           </div>
         </div>
 
@@ -280,6 +126,44 @@ const PastWinners = () => {
       </div>
     </div>
   );
+
+  // Loading state
+  if (winnersLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-face-sky-blue mx-auto mb-4" />
+            <p className="text-xl text-gray-600">Loading past winners...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Error state
+  if (winnersError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-xl text-gray-600 mb-4">Failed to load past winners</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-face-sky-blue text-white px-6 py-2 rounded-lg hover:bg-face-sky-blue-dark transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
@@ -321,7 +205,7 @@ const PastWinners = () => {
         }
       `}</style>
       
-      {/* Extraordinary Hero section */}
+      {/* Hero section */}
       <section className="relative py-40 bg-face-grey overflow-hidden">
         {/* Background with multiple layers */}
         <div className="absolute inset-0">
@@ -389,13 +273,13 @@ const PastWinners = () => {
                 <Globe className="h-7 w-7 text-white" />
                 <div className="text-left">
                   <div className="font-bold text-xl">{countriesRepresented}</div>
-                  <div className="text-sm opacity-90">Countries</div>
+                  <div className="text-sm opacity-90">Organizations</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-white/40 hover:bg-white/40 transition-all duration-300 transform hover:scale-105">
                 <Calendar className="h-7 w-7 text-white" />
                 <div className="text-left">
-                  <div className="font-bold text-xl">3</div>
+                  <div className="font-bold text-xl">{years.length}</div>
                   <div className="text-sm opacity-90">Years Featured</div>
                 </div>
               </div>
@@ -457,6 +341,16 @@ const PastWinners = () => {
                 <div>
                   <label className="block text-lg font-bold text-face-grey mb-4">Select Category</label>
                   <div className="bg-white rounded-2xl p-2 shadow-lg border border-face-sky-blue/20 max-h-64 overflow-y-auto">
+                    <button
+                      onClick={() => setSelectedCategory("All Categories")}
+                      className={`w-full px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 mb-1 ${
+                        selectedCategory === "All Categories"
+                          ? 'bg-face-sky-blue text-white shadow-lg'
+                          : 'text-gray-600 hover:bg-face-sky-blue/10 hover:text-face-sky-blue'
+                      }`}
+                    >
+                      All Categories
+                    </button>
                     {categories.map((category) => (
                       <button
                         key={category}
@@ -488,14 +382,14 @@ const PastWinners = () => {
                 {selectedYear} Winners {selectedCategory !== "All Categories" && `- ${selectedCategory}`}
               </h2>
               <p className="text-xl text-gray-600">
-                Displaying {filteredWinners.length} award recipient{filteredWinners.length !== 1 ? 's' : ''} who changed the world
+                Displaying {winners.length} award recipient{winners.length !== 1 ? 's' : ''} who changed the world
               </p>
             </div>
             
             {/* Winners grid */}
-            {filteredWinners.length > 0 ? (
+            {winners.length > 0 ? (
               <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-10">
-                {filteredWinners.map((winner, index) => (
+                {winners.map((winner, index) => (
                   <WinnerCard key={winner.id} winner={winner} index={index} />
                 ))}
               </div>
@@ -505,7 +399,7 @@ const PastWinners = () => {
                   <Sparkles className="h-16 w-16 text-gray-400 mx-auto mb-6" />
                   <h3 className="text-2xl font-bold text-gray-700 mb-4">No Winners Found</h3>
                   <p className="text-gray-500 text-lg">
-                    No winners found for the selected category in {selectedYear}. Try selecting a different category or year.
+                    No winners found for the selected filters. Try selecting different criteria.
                   </p>
                 </div>
               </div>

@@ -1,266 +1,203 @@
-import { useState, useEffect, useCallback } from 'react';
-import { 
-  apiClient, 
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient, getUserIP } from '@/lib/api';
+import type { 
   Category, 
   CategoryDetails, 
   Nominee, 
   NomineeDetails, 
   PastWinner, 
-  GalleryEvent, 
-  TrendingNominee,
-  getUserIP 
+  GalleryEvent,
+  RegistrationData,
+  RegistrationResponse
 } from '@/lib/api';
 
-// Generic hook for API calls
-export function useApi<T>(
-  apiCall: () => Promise<{ success: boolean; data: T }>,
-  dependencies: any[] = []
-) {
-  const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Categories Hooks
+export const useCategories = (params?: { region?: string; voting_only?: boolean }) => {
+  return useQuery({
+    queryKey: ['categories', params],
+    queryFn: () => apiClient.getCategories(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await apiCall();
-      if (response.success) {
-        setData(response.data);
-      } else {
-        setError('Failed to fetch data');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  }, dependencies);
+export const useCategory = (id: number) => {
+  return useQuery({
+    queryKey: ['category', id],
+    queryFn: () => apiClient.getCategory(id),
+    enabled: !!id,
+  });
+};
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+export const useCategoryStats = () => {
+  return useQuery({
+    queryKey: ['category-stats'],
+    queryFn: () => apiClient.getCategoryStats(),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
 
-  return { data, loading, error, refetch: fetchData };
-}
-
-// Categories hooks
-export function useCategories(params?: {
-  region?: string;
-  voting_only?: boolean;
-}) {
-  return useApi(
-    () => apiClient.getCategories(params),
-    [params?.region, params?.voting_only]
-  );
-}
-
-export function useCategory(id: number) {
-  return useApi(
-    () => apiClient.getCategory(id),
-    [id]
-  );
-}
-
-export function useCategoryStats() {
-  return useApi(() => apiClient.getCategoryStats());
-}
-
-// Nominees hooks
-export function useNominees(params?: {
+// Nominees Hooks
+export const useNominees = (params?: {
   category_id?: number;
   category?: string;
   winners_only?: boolean;
   order_by?: 'votes' | 'name' | 'created_at';
   order_direction?: 'asc' | 'desc';
-}) {
-  return useApi(
-    () => apiClient.getNominees(params),
-    [params?.category_id, params?.category, params?.winners_only, params?.order_by, params?.order_direction]
-  );
-}
+}) => {
+  return useQuery({
+    queryKey: ['nominees', params],
+    queryFn: () => apiClient.getNominees(params),
+    staleTime: 2 * 60 * 1000, // 2 minutes for voting data
+  });
+};
 
-export function useNominee(id: number) {
-  return useApi(
-    () => apiClient.getNominee(id),
-    [id]
-  );
-}
+export const useNominee = (id: number) => {
+  return useQuery({
+    queryKey: ['nominee', id],
+    queryFn: () => apiClient.getNominee(id),
+    enabled: !!id,
+  });
+};
 
-export function useTrendingNominees() {
-  return useApi(() => apiClient.getTrendingNominees());
-}
+export const useTrendingNominees = () => {
+  return useQuery({
+    queryKey: ['trending-nominees'],
+    queryFn: () => apiClient.getTrendingNominees(),
+    staleTime: 1 * 60 * 1000, // 1 minute
+  });
+};
 
-// Past Winners hooks
-export function usePastWinners(params?: {
-  year?: number;
-  category?: string;
-}) {
-  return useApi(
-    () => apiClient.getPastWinners(params),
-    [params?.year, params?.category]
-  );
-}
+// Voting Hooks
+export const useVote = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ nomineeId }: { nomineeId: number }) => {
+      const ipAddress = await getUserIP();
+      return apiClient.voteForNominee(nomineeId, ipAddress);
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate relevant queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['nominees'] });
+      queryClient.invalidateQueries({ queryKey: ['nominee', variables.nomineeId] });
+      queryClient.invalidateQueries({ queryKey: ['category'] });
+      queryClient.invalidateQueries({ queryKey: ['user-votes'] });
+      queryClient.invalidateQueries({ queryKey: ['trending-nominees'] });
+    },
+  });
+};
 
-export function usePastWinnerYears() {
-  return useApi(() => apiClient.getPastWinnerYears());
-}
+export const useVoteCheck = (nomineeId: number) => {
+  return useQuery({
+    queryKey: ['vote-check', nomineeId],
+    queryFn: async () => {
+      const ipAddress = await getUserIP();
+      return apiClient.checkVoteStatus(nomineeId, ipAddress);
+    },
+    enabled: !!nomineeId,
+    staleTime: 1 * 60 * 1000, // 1 minute
+  });
+};
 
-export function usePastWinnerCategories() {
-  return useApi(() => apiClient.getPastWinnerCategories());
-}
+export const useUserVotes = () => {
+  return useQuery({
+    queryKey: ['user-votes'],
+    queryFn: async () => {
+      const ipAddress = await getUserIP();
+      return apiClient.getUserVotes(ipAddress);
+    },
+    staleTime: 30 * 1000, // 30 seconds
+  });
+};
 
-// Gallery hooks
-export function useGalleryEvents(params?: {
-  year?: number;
-  featured_only?: boolean;
-}) {
-  return useApi(
-    () => apiClient.getGalleryEvents(params),
-    [params?.year, params?.featured_only]
-  );
-}
+// Past Winners Hooks
+export const usePastWinners = (params?: { year?: number; category?: string }) => {
+  return useQuery({
+    queryKey: ['past-winners', params],
+    queryFn: () => apiClient.getPastWinners(params),
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  });
+};
 
-export function useGalleryEvent(id: number) {
-  return useApi(
-    () => apiClient.getGalleryEvent(id),
-    [id]
-  );
-}
+export const usePastWinnerYears = () => {
+  return useQuery({
+    queryKey: ['past-winner-years'],
+    queryFn: () => apiClient.getPastWinnerYears(),
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
+};
 
-export function useGalleryYears() {
-  return useApi(() => apiClient.getGalleryYears());
-}
+export const usePastWinnerCategories = () => {
+  return useQuery({
+    queryKey: ['past-winner-categories'],
+    queryFn: () => apiClient.getPastWinnerCategories(),
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
+};
 
-// Voting hooks
-export function useVoting() {
-  const [userIP, setUserIP] = useState<string>('');
-  const [votingStatus, setVotingStatus] = useState<Record<number, boolean>>({});
-  const [loading, setLoading] = useState(false);
+// Gallery Hooks
+export const useGalleryEvents = (params?: { year?: number; featured_only?: boolean }) => {
+  return useQuery({
+    queryKey: ['gallery-events', params],
+    queryFn: () => apiClient.getGalleryEvents(params),
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  });
+};
 
-  useEffect(() => {
-    getUserIP().then(setUserIP);
-  }, []);
+export const useGalleryEvent = (id: number) => {
+  return useQuery({
+    queryKey: ['gallery-event', id],
+    queryFn: () => apiClient.getGalleryEvent(id),
+    enabled: !!id,
+  });
+};
 
-  const voteForNominee = useCallback(async (nomineeId: number) => {
-    if (!userIP) return null;
-    
-    try {
-      setLoading(true);
-      const response = await apiClient.voteForNominee(nomineeId, userIP);
-      if (response.success) {
-        setVotingStatus(prev => ({ ...prev, [nomineeId]: true }));
-        return response.data;
-      }
-      return null;
-    } catch (error) {
-      console.error('Voting failed:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [userIP]);
+export const useGalleryYears = () => {
+  return useQuery({
+    queryKey: ['gallery-years'],
+    queryFn: () => apiClient.getGalleryYears(),
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
+};
 
-  const checkVoteStatus = useCallback(async (nomineeId: number) => {
-    if (!userIP) return false;
-    
-    try {
-      const response = await apiClient.checkVoteStatus(nomineeId, userIP);
-      if (response.success) {
-        setVotingStatus(prev => ({ ...prev, [nomineeId]: response.data.has_voted }));
-        return response.data.has_voted;
-      }
-      return false;
-    } catch (error) {
-      console.error('Check vote status failed:', error);
-      return false;
-    }
-  }, [userIP]);
+// Registration Hooks
+export const useCreateRegistration = () => {
+  return useMutation({
+    mutationFn: (data: RegistrationData) => apiClient.createRegistration(data),
+  });
+};
 
-  const getUserVotes = useCallback(async () => {
-    if (!userIP) return [];
-    
-    try {
-      const response = await apiClient.getUserVotes(userIP);
-      if (response.success) {
-        return response.data;
-      }
-      return [];
-    } catch (error) {
-      console.error('Get user votes failed:', error);
-      return [];
-    }
-  }, [userIP]);
+export const useLookupRegistration = () => {
+  return useMutation({
+    mutationFn: (data: { reference_number: string; email: string }) => 
+      apiClient.lookupRegistration(data),
+  });
+};
 
-  return {
-    userIP,
-    votingStatus,
-    loading,
-    voteForNominee,
-    checkVoteStatus,
-    getUserVotes
-  };
-}
+// Settings Hooks
+export const useSettings = () => {
+  return useQuery({
+    queryKey: ['settings'],
+    queryFn: () => apiClient.getSettings(),
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
+};
 
-// Settings hook
-export function useSettings() {
-  return useApi(() => apiClient.getSettings());
-}
+export const useSetting = (key: string) => {
+  return useQuery({
+    queryKey: ['setting', key],
+    queryFn: () => apiClient.getSetting(key),
+    enabled: !!key,
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
+};
 
-export function useSetting(key: string) {
-  return useApi(() => apiClient.getSetting(key), [key]);
-}
-
-// Registration hook
-export function useRegistration() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const createRegistration = useCallback(async (data: any) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await apiClient.createRegistration(data);
-      if (response.success) {
-        return response.data;
-      } else {
-        throw new Error('Registration failed');
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const lookupRegistration = useCallback(async (data: {
-    reference_number: string;
-    email: string;
-  }) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await apiClient.lookupRegistration(data);
-      if (response.success) {
-        return response.data;
-      } else {
-        throw new Error('Registration not found');
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Lookup failed';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return {
-    loading,
-    error,
-    createRegistration,
-    lookupRegistration
-  };
-}
+// Health Check Hook
+export const useHealthCheck = () => {
+  return useQuery({
+    queryKey: ['health-check'],
+    queryFn: () => apiClient.healthCheck(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+  });
+};

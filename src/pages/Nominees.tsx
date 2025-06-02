@@ -1,171 +1,68 @@
+// src/pages/Nominees.tsx
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Award, Filter, PieChart, Calendar, Users, Trophy, Star, Clock, Vote, TrendingUp, Globe, Sparkles, ChevronRight, Play, Heart } from 'lucide-react';
-
-// Sample nominees data
-const nomineesData = {
-  "Technology Innovation": [
-    {
-      id: 1,
-      name: "Dr. Aisha Williams",
-      organization: "AI Health Solutions",
-      category: "Technology Innovation",
-      description: "Developed an AI-powered diagnostic tool that detects early signs of neurological disorders with 94% accuracy.",
-      imageUrl: "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 42,
-      canVote: true,
-      votes: 2847,
-      impact: "2.3M+ lives improved"
-    },
-    {
-      id: 2,
-      name: "Quantum Computing Group",
-      organization: "Horizon Labs",
-      category: "Technology Innovation",
-      description: "Created a breakthrough quantum computing framework that solves complex climate modeling problems 100x faster than traditional methods.",
-      imageUrl: "https://images.pexels.com/photos/2004161/pexels-photo-2004161.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 35,
-      canVote: true,
-      votes: 2382,
-      impact: "Climate modeling revolutionized"
-    },
-    {
-      id: 3,
-      name: "EcoTech Solutions",
-      organization: "Green Innovations Inc.",
-      category: "Technology Innovation",
-      description: "Pioneered a water purification system that uses 90% less energy while purifying water in disaster zones.",
-      imageUrl: "https://images.pexels.com/photos/356043/pexels-photo-356043.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 23,
-      canVote: true,
-      votes: 1564,
-      impact: "500K+ clean water access"
-    }
-  ],
-  "Leadership Excellence": [
-    {
-      id: 4,
-      name: "Maria Gonzalez",
-      organization: "Global Enterprises",
-      category: "Leadership Excellence",
-      description: "Transformed a struggling company into a market leader while implementing groundbreaking diversity initiatives.",
-      imageUrl: "https://images.pexels.com/photos/5669602/pexels-photo-5669602.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 51,
-      canVote: true,
-      votes: 3421,
-      impact: "15K+ jobs created"
-    },
-    {
-      id: 5,
-      name: "David Chen",
-      organization: "Nexus Foundation",
-      category: "Leadership Excellence",
-      description: "Led international coalition efforts that provided educational resources to over 2 million children in conflict zones.",
-      imageUrl: "https://images.pexels.com/photos/5212317/pexels-photo-5212317.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 49,
-      canVote: true,
-      votes: 3289,
-      impact: "2M+ children educated"
-    }
-  ],
-  "Humanitarian Impact": [
-    {
-      id: 6,
-      name: "Doctors Beyond Borders",
-      organization: "Non-profit Organization",
-      category: "Humanitarian Impact",
-      description: "Provided critical medical care to over 500,000 people in crisis regions across three continents.",
-      imageUrl: "https://images.pexels.com/photos/6129507/pexels-photo-6129507.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 38,
-      canVote: true,
-      votes: 2156,
-      impact: "500K+ lives saved"
-    },
-    {
-      id: 7,
-      name: "Clean Water Initiative",
-      organization: "Environmental Action Group",
-      category: "Humanitarian Impact",
-      description: "Developed and installed sustainable water systems in 120 villages, impacting over 300,000 lives.",
-      imageUrl: "https://images.pexels.com/photos/6995688/pexels-photo-6995688.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 33,
-      canVote: true,
-      votes: 1876,
-      impact: "300K+ water access"
-    },
-    {
-      id: 8,
-      name: "Education For All Foundation",
-      organization: "Non-profit Organization",
-      category: "Humanitarian Impact",
-      description: "Created mobile learning platforms reaching 1.2 million children with no prior access to education.",
-      imageUrl: "https://images.pexels.com/photos/5212700/pexels-photo-5212700.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 29,
-      canVote: true,
-      votes: 1644,
-      impact: "1.2M+ children learning"
-    }
-  ],
-  "Sustainable Development": [
-    {
-      id: 9,
-      name: "Green Cities Project",
-      organization: "Urban Development Group",
-      category: "Sustainable Development",
-      description: "Transformed urban spaces with innovative carbon-negative architecture and infrastructure.",
-      imageUrl: "https://images.pexels.com/photos/323705/pexels-photo-323705.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 47,
-      canVote: true,
-      votes: 2634,
-      impact: "Carbon-negative cities"
-    },
-    {
-      id: 10,
-      name: "Ocean Cleanup Collective",
-      organization: "Marine Conservation Organization",
-      category: "Sustainable Development",
-      description: "Pioneered scalable technology that has removed 3 million pounds of plastic from ocean ecosystems.",
-      imageUrl: "https://images.pexels.com/photos/1619317/pexels-photo-1619317.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-      votingPercentage: 53,
-      canVote: true,
-      votes: 2967,
-      impact: "3M+ lbs plastic removed"
-    }
-  ]
-};
-
-const categories = ["Technology Innovation", "Leadership Excellence", "Humanitarian Impact", "Sustainable Development"];
+import { Award, Filter, PieChart, Calendar, Users, Trophy, Star, Clock, Vote, TrendingUp, Globe, Sparkles, ChevronRight, Play, Heart, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { useCategories, useNominees, useVote, useUserVotes, useCategoryStats } from '@/hooks/useApi';
+import { toast } from '@/components/ui/use-toast';
 
 const Nominees = () => {
-  const [selectedCategory, setSelectedCategory] = useState("Technology Innovation");
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [animateStats, setAnimateStats] = useState(false);
   const [votingEndDate] = useState(new Date(new Date().setDate(new Date().getDate() + 30)));
+  
+  // API Hooks
+  const { data: categoriesResponse, isLoading: categoriesLoading, error: categoriesError } = useCategories();
+  const { data: nomineesResponse, isLoading: nomineesLoading, error: nomineesError } = useNominees({
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+    order_by: 'votes',
+    order_direction: 'desc'
+  });
+  const { data: userVotesResponse } = useUserVotes();
+  const { data: statsResponse } = useCategoryStats();
+  const voteMutation = useVote();
+  
+  const categories = categoriesResponse?.data || [];
+  const nominees = nomineesResponse?.data || [];
+  const userVotes = userVotesResponse?.data || [];
+  const stats = statsResponse?.data;
+  
+  // Get voted nominee IDs
+  const votedNomineeIds = new Set(
+    userVotes.flatMap(categoryVote => categoryVote.voted_nominees)
+  );
   
   useEffect(() => {
     const timer = setTimeout(() => setAnimateStats(true), 500);
     return () => clearTimeout(timer);
   }, []);
   
-  const handleVote = (id) => {
-    console.log(`Voted for nominee with id ${id}`);
-    // In a real application, we would send this vote to a backend
-  };
-
-  // Calculate stats
-  const getTotalVotes = () => {
-    let total = 0;
-    Object.values(nomineesData).forEach(categoryNominees => {
-      categoryNominees.forEach(nominee => {
-        total += nominee.votes;
+  const handleVote = async (nomineeId: number) => {
+    if (votedNomineeIds.has(nomineeId)) {
+      toast({
+        title: "Already voted",
+        description: "You have already voted for this nominee.",
+        variant: "destructive"
       });
-    });
-    return total;
+      return;
+    }
+    
+    try {
+      await voteMutation.mutateAsync({ nomineeId });
+      toast({
+        title: "Vote recorded!",
+        description: "Thank you for your vote. It has been successfully recorded.",
+      });
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Failed to record vote. Please try again.";
+      toast({
+        title: "Vote failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
   };
-
-  const totalVotes = getTotalVotes();
-  const activeNominees = Object.values(nomineesData).flat().length;
 
   // Countdown timer logic
   const [timeLeft, setTimeLeft] = useState({
@@ -191,90 +88,181 @@ const Nominees = () => {
     return () => clearInterval(timer);
   }, [votingEndDate]);
 
-  const NomineeCard = ({ nominee, index }) => (
-    <div 
-      className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-face-sky-blue/10 overflow-hidden"
-      onMouseEnter={() => setHoveredCard(nominee.id)}
-      onMouseLeave={() => setHoveredCard(null)}
-      style={{
-        animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
-      }}
-    >
-      {/* Image Container */}
-      <div className="relative h-64 overflow-hidden">
-        <img 
-          src={nominee.imageUrl}
-          alt={nominee.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        
-        {/* Floating vote button */}
-        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+  const NomineeCard = ({ nominee, index }: { nominee: any; index: number }) => {
+    const hasVoted = votedNomineeIds.has(nominee.id);
+    const isVoting = voteMutation.isPending;
+    
+    return (
+      <div 
+        className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-face-sky-blue/10 overflow-hidden"
+        onMouseEnter={() => setHoveredCard(nominee.id)}
+        onMouseLeave={() => setHoveredCard(null)}
+        style={{
+          animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
+        }}
+      >
+        {/* Image Container */}
+        <div className="relative h-64 overflow-hidden">
+          <img 
+            src={nominee.image_url || `https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop`}
+            alt={nominee.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          
+          {/* Vote status indicator */}
+          {hasVoted && (
+            <div className="absolute top-4 left-4">
+              <div className="bg-green-500 text-white p-2 rounded-full shadow-lg">
+                <CheckCircle className="h-5 w-5" />
+              </div>
+            </div>
+          )}
+
+          {/* Floating vote button */}
+          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+            <button 
+              onClick={() => handleVote(nominee.id)}
+              disabled={hasVoted || isVoting || !nominee.can_vote}
+              className={`p-3 rounded-full shadow-2xl transform hover:scale-110 transition-all duration-300 ${
+                hasVoted 
+                  ? 'bg-green-500 text-white cursor-default' 
+                  : nominee.can_vote 
+                    ? 'bg-face-sky-blue hover:bg-face-sky-blue-dark text-white' 
+                    : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+              }`}
+            >
+              {isVoting ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : hasVoted ? (
+                <CheckCircle className="h-5 w-5" />
+              ) : (
+                <Heart className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+
+          {/* Impact badge */}
+          {nominee.impact_summary && (
+            <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+              <span className="text-face-sky-blue font-bold text-sm">{nominee.impact_summary}</span>
+            </div>
+          )}
+
+          {/* Vote percentage indicator */}
+          <div className="absolute top-4 left-4">
+            <div className="bg-face-sky-blue text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+              {nominee.voting_percentage.toFixed(1)}%
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-8">
+          <div className="mb-4">
+            <h3 className="text-2xl font-serif font-bold text-face-grey mb-2 group-hover:text-face-sky-blue transition-colors duration-300">
+              {nominee.name}
+            </h3>
+            <p className="text-face-sky-blue font-medium text-sm">{nominee.organization}</p>
+            <p className="text-gray-500 text-sm">{nominee.category}</p>
+          </div>
+
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            {nominee.description}
+          </p>
+
+          {/* Stats row */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2 text-gray-500">
+              <Vote className="h-4 w-4" />
+              <span className="text-sm font-medium">{nominee.votes.toLocaleString()} votes</span>
+            </div>
+            <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark transition-all duration-1000 ease-out"
+                style={{ 
+                  width: `${nominee.voting_percentage}%`,
+                  animation: animateStats ? `growWidth 1s ease-out ${index * 0.1}s both` : 'none'
+                }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Action button */}
           <button 
             onClick={() => handleVote(nominee.id)}
-            className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-white p-3 rounded-full shadow-2xl transform hover:scale-110 transition-all duration-300"
+            disabled={hasVoted || isVoting || !nominee.can_vote}
+            className={`w-full font-bold py-4 px-6 rounded-2xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl group ${
+              hasVoted 
+                ? 'bg-green-500 text-white cursor-default'
+                : nominee.can_vote 
+                  ? 'bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark hover:from-face-sky-blue-dark hover:to-face-grey text-white'
+                  : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+            }`}
           >
-            <Heart className="h-5 w-5" />
+            <span className="flex items-center justify-center gap-2">
+              {isVoting ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Voting...
+                </>
+              ) : hasVoted ? (
+                <>
+                  <CheckCircle className="h-5 w-5" />
+                  Voted
+                </>
+              ) : nominee.can_vote ? (
+                <>
+                  Vote Now
+                  <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                </>
+              ) : (
+                'Voting Closed'
+              )}
+            </span>
           </button>
         </div>
-
-        {/* Impact badge */}
-        <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
-          <span className="text-face-sky-blue font-bold text-sm">{nominee.impact}</span>
-        </div>
-
-        {/* Vote percentage indicator */}
-        <div className="absolute top-4 left-4">
-          <div className="bg-face-sky-blue text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-            {nominee.votingPercentage}%
-          </div>
-        </div>
       </div>
+    );
+  };
 
-      {/* Content */}
-      <div className="p-8">
-        <div className="mb-4">
-          <h3 className="text-2xl font-serif font-bold text-face-grey mb-2 group-hover:text-face-sky-blue transition-colors duration-300">
-            {nominee.name}
-          </h3>
-          <p className="text-face-sky-blue font-medium text-sm">{nominee.organization}</p>
-        </div>
-
-        <p className="text-gray-600 mb-6 leading-relaxed">
-          {nominee.description}
-        </p>
-
-        {/* Stats row */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 text-gray-500">
-            <Vote className="h-4 w-4" />
-            <span className="text-sm font-medium">{nominee.votes.toLocaleString()} votes</span>
-          </div>
-          <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark transition-all duration-1000 ease-out"
-              style={{ 
-                width: `${nominee.votingPercentage}%`,
-                animation: animateStats ? `growWidth 1s ease-out ${index * 0.1}s both` : 'none'
-              }}
-            ></div>
+  // Loading state
+  if (categoriesLoading || nomineesLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-face-sky-blue mx-auto mb-4" />
+            <p className="text-xl text-gray-600">Loading nominees...</p>
           </div>
         </div>
-
-        {/* Action button */}
-        <button 
-          onClick={() => handleVote(nominee.id)}
-          className="w-full bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark hover:from-face-sky-blue-dark hover:to-face-grey text-white font-bold py-4 px-6 rounded-2xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl group"
-        >
-          <span className="flex items-center justify-center gap-2">
-            Vote Now
-            <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-          </span>
-        </button>
+        <Footer />
       </div>
-    </div>
-  );
+    );
+  }
+
+  // Error state
+  if (categoriesError || nomineesError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-xl text-gray-600 mb-4">Failed to load nominees</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-face-sky-blue text-white px-6 py-2 rounded-lg hover:bg-face-sky-blue-dark transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
@@ -325,7 +313,7 @@ const Nominees = () => {
         }
       `}</style>
       
-      {/* Extraordinary Hero section */}
+      {/* Hero section */}
       <section className="relative py-40 bg-face-grey overflow-hidden">
         {/* Background with multiple layers */}
         <div className="absolute inset-0">
@@ -385,21 +373,21 @@ const Nominees = () => {
               <div className="flex items-center gap-4 bg-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-white/40 hover:bg-white/40 transition-all duration-300 transform hover:scale-105">
                 <Users className="h-7 w-7 text-white" />
                 <div className="text-left">
-                  <div className="font-bold text-xl">{activeNominees}</div>
+                  <div className="font-bold text-xl">{stats?.total_nominees || nominees.length}</div>
                   <div className="text-sm opacity-90">Active Nominees</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-white/40 hover:bg-white/40 transition-all duration-300 transform hover:scale-105">
                 <Trophy className="h-7 w-7 text-white" />
                 <div className="text-left">
-                  <div className="font-bold text-xl">4</div>
+                  <div className="font-bold text-xl">{stats?.active_voting_categories || categories.length}</div>
                   <div className="text-sm opacity-90">Categories Open</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-white/40 hover:bg-white/40 transition-all duration-300 transform hover:scale-105">
                 <Vote className="h-7 w-7 text-white" />
                 <div className="text-left">
-                  <div className="font-bold text-xl">{totalVotes.toLocaleString()}</div>
+                  <div className="font-bold text-xl">{stats?.total_votes?.toLocaleString() || '0'}</div>
                   <div className="text-sm opacity-90">Total Votes</div>
                 </div>
               </div>
@@ -430,7 +418,7 @@ const Nominees = () => {
         </div>
       </section>
       
-      {/* Extraordinary Countdown Timer */}
+      {/* Countdown Timer */}
       <section className="py-20 bg-gradient-to-r from-white via-face-sky-blue/5 to-white">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
@@ -463,102 +451,83 @@ const Nominees = () => {
         </div>
       </section>
       
-      {/* Enhanced Category Stats */}
+      {/* Category Navigation */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
+            <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-face-grey mb-4">
-                <TrendingUp className="inline h-10 w-10 text-face-sky-blue mr-3" />
-                Voting Insights
+                <Filter className="inline h-10 w-10 text-face-sky-blue mr-3" />
+                Filter by Category
               </h2>
-              <p className="text-xl text-gray-600">Real-time engagement across all categories</p>
+              <p className="text-xl text-gray-600">Explore nominees across different categories of excellence</p>
             </div>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {categories.map((category, index) => {
-                const categoryNominees = nomineesData[category];
-                const categoryVotes = categoryNominees.reduce((sum, nominee) => sum + nominee.votes, 0);
-                const percentage = Math.round((categoryVotes / totalVotes) * 100);
-                
-                return (
-                  <div 
-                    key={category}
-                    className="bg-gradient-to-br from-white to-face-sky-blue/5 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-face-sky-blue/10"
-                    style={{
-                      animation: `fadeInUp 0.6s ease-out ${index * 0.2}s both`
-                    }}
-                  >
-                    <div className="text-center">
-                      <div className="w-20 h-20 bg-gradient-to-br from-face-sky-blue to-face-sky-blue-dark rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                        <span className="text-2xl font-bold text-white">{percentage}%</span>
-                      </div>
-                      <h3 className="text-lg font-bold text-face-grey mb-3">{category}</h3>
-                      <p className="text-gray-600 mb-4">{categoryVotes.toLocaleString()} total votes</p>
-                      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark transition-all duration-1000 ease-out rounded-full"
-                          style={{ 
-                            width: `${percentage}%`,
-                            animation: animateStats ? `growWidth 1.5s ease-out ${index * 0.2}s both` : 'none'
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Extraordinary Nominees section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
-        <div className="container mx-auto px-4">
-          <div className="max-w-7xl mx-auto">
-            {/* Section Header */}
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-face-sky-blue rounded-full mb-6 shadow-lg">
-                <Sparkles className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-5xl font-serif font-bold text-face-grey mb-6">
-                Meet Our <span className="bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark bg-clip-text text-transparent">Extraordinary Nominees</span>
-              </h2>
-              <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Discover the remarkable individuals and organizations competing for recognition across multiple categories of excellence
-              </p>
-            </div>
-            
-            {/* Enhanced Category Navigation */}
             <div className="flex justify-center mb-16">
               <div className="bg-white p-2 rounded-2xl shadow-2xl border border-face-sky-blue/20">
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className={`px-8 py-4 mx-1 text-lg font-medium rounded-xl transition-all duration-300 ${
+                    selectedCategory === 'all'
+                      ? 'bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark text-white shadow-xl transform scale-105'
+                      : 'text-gray-600 hover:bg-face-sky-blue/10 hover:text-face-sky-blue'
+                  }`}
+                >
+                  All Categories
+                </button>
                 {categories.map((category) => (
                   <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.name)}
                     className={`px-8 py-4 mx-1 text-lg font-medium rounded-xl transition-all duration-300 ${
-                      selectedCategory === category
+                      selectedCategory === category.name
                         ? 'bg-gradient-to-r from-face-sky-blue to-face-sky-blue-dark text-white shadow-xl transform scale-105'
                         : 'text-gray-600 hover:bg-face-sky-blue/10 hover:text-face-sky-blue'
                     }`}
                   >
-                    {category}
+                    {category.name}
                   </button>
                 ))}
               </div>
-            </div>
-            
-            {/* Enhanced Nominees Grid */}
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-10">
-              {nomineesData[selectedCategory].map((nominee, index) => (
-                <NomineeCard key={nominee.id} nominee={nominee} index={index} />
-              ))}
             </div>
           </div>
         </div>
       </section>
       
+      {/* Nominees Grid */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-face-sky-blue/5">
+        <div className="container mx-auto px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-serif font-bold text-face-grey mb-4">
+                Exceptional <span className="text-face-sky-blue">Nominees</span>
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Discover remarkable individuals and organizations competing for recognition
+              </p>
+            </div>
+            
+            {nominees.length > 0 ? (
+              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-10">
+                {nominees.map((nominee, index) => (
+                  <NomineeCard key={nominee.id} nominee={nominee} index={index} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <div className="bg-white rounded-3xl p-12 shadow-xl border border-face-sky-blue/20 max-w-md mx-auto">
+                  <Sparkles className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+                  <h3 className="text-2xl font-bold text-gray-700 mb-4">No Nominees Found</h3>
+                  <p className="text-gray-500 text-lg">
+                    No nominees found for the selected category. Try selecting a different category.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Call to Action */}
       <section className="py-20 bg-gradient-to-r from-face-sky-blue via-face-sky-blue-dark to-face-grey">
         <div className="container mx-auto px-4 text-center">
@@ -579,97 +548,6 @@ const Nominees = () => {
                 <Award className="inline h-6 w-6 mr-3" />
                 Learn About FACE Awards
               </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Upcoming Categories Preview */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-serif font-bold text-face-grey mb-4">
-                <Calendar className="inline h-10 w-10 text-face-sky-blue mr-3" />
-                Coming Soon
-              </h2>
-              <p className="text-xl text-gray-600">New categories opening for nominations and voting</p>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-gradient-to-br from-face-sky-blue/5 to-face-sky-blue/10 rounded-3xl p-8 border border-face-sky-blue/20 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-face-sky-blue rounded-full flex items-center justify-center mr-4">
-                    <Star className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-face-grey">Creative Arts Excellence</h3>
-                    <p className="text-face-sky-blue font-medium">Opens in 15 days</p>
-                  </div>
-                </div>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Celebrating outstanding achievements in visual arts, music, literature, and digital creativity that inspire and transform communities.
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Expected nominees: 12</span>
-                  <div className="bg-face-sky-blue text-white px-4 py-2 rounded-full text-sm font-bold">
-                    Nominations Open
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-br from-face-sky-blue/5 to-face-sky-blue/10 rounded-3xl p-8 border border-face-sky-blue/20 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-face-sky-blue rounded-full flex items-center justify-center mr-4">
-                    <Trophy className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-face-grey">Educational Excellence</h3>
-                    <p className="text-face-sky-blue font-medium">Opens in 30 days</p>
-                  </div>
-                </div>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Recognizing innovative educators, institutions, and programs that are revolutionizing learning and empowering future generations.
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Expected nominees: 8</span>
-                  <div className="bg-gray-300 text-gray-600 px-4 py-2 rounded-full text-sm font-bold">
-                    Coming Soon
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter Signup */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-face-sky-blue/10">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-white rounded-3xl p-12 shadow-2xl border border-face-sky-blue/20">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-face-sky-blue rounded-full mb-8">
-                <Star className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-4xl font-serif font-bold text-face-grey mb-6">
-                Stay Updated on Excellence
-              </h2>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Get notified when new categories open, voting begins, and winners are announced
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="Enter your email address"
-                  className="flex-1 px-6 py-4 border border-face-sky-blue/30 rounded-2xl focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors text-lg"
-                />
-                <button className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-white font-bold py-4 px-8 rounded-2xl transform hover:scale-105 transition-all duration-300 shadow-lg">
-                  Subscribe
-                </button>
-              </div>
-              <p className="text-sm text-gray-500 mt-4">
-                Join 50,000+ subscribers worldwide • No spam, unsubscribe anytime
-              </p>
             </div>
           </div>
         </div>

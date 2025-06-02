@@ -1,15 +1,50 @@
 import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Award, Calendar, Mail, MapPin, Users, CheckCircle, Clock } from 'lucide-react';
+import { Award, Calendar, Mail, MapPin, Users, CheckCircle, Clock, Loader2, AlertCircle } from 'lucide-react';
+import { useCreateRegistration } from '@/hooks/useApi';
+import { toast } from '@/components/ui/use-toast';
+import type { RegistrationData } from '@/lib/api';
 
 const Registration = () => {
   const [formStep, setFormStep] = useState(1);
-  const [submitting, setSubmitting] = useState(false);
-  const [ticketType, setTicketType] = useState('standard');
+  const [ticketType, setTicketType] = useState<'standard' | 'vip' | 'corporate'>('standard');
+  const [formData, setFormData] = useState<Partial<RegistrationData>>({});
+  const [registrationResult, setRegistrationResult] = useState<any>(null);
 
-  const handleNextStep = (e) => {
+  const createRegistrationMutation = useCreateRegistration();
+
+  const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formDataObj = new FormData(form);
+    
+    // Validate required fields
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'country', 'city'];
+    const missingFields = requiredFields.filter(field => !formDataObj.get(field));
+    
+    if (missingFields.length > 0) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in all required fields before continuing.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Update form data
+    const newFormData: Partial<RegistrationData> = {
+      first_name: formDataObj.get('firstName') as string,
+      last_name: formDataObj.get('lastName') as string,
+      email: formDataObj.get('email') as string,
+      phone: formDataObj.get('phone') as string,
+      organization: formDataObj.get('organization') as string || undefined,
+      country: formDataObj.get('country') as string,
+      city: formDataObj.get('city') as string,
+      dietary_requirements: formDataObj.get('dietaryRequirements') as string || undefined,
+    };
+
+    setFormData(newFormData);
     setFormStep(2);
     window.scrollTo(0, 0);
   };
@@ -19,16 +54,44 @@ const Registration = () => {
     window.scrollTo(0, 0);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
-      setSubmitting(false);
+    if (!formData.first_name || !formData.last_name || !formData.email || !formData.phone || !formData.country || !formData.city) {
+      toast({
+        title: "Missing information",
+        description: "Please complete all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const registrationData: RegistrationData = {
+      ...formData as Required<Pick<RegistrationData, 'first_name' | 'last_name' | 'email' | 'phone' | 'country' | 'city'>>,
+      ticket_type: ticketType,
+      event_date: new Date('2024-11-15T19:00:00').toISOString(),
+      organization: formData.organization,
+      dietary_requirements: formData.dietary_requirements,
+    };
+
+    try {
+      const response = await createRegistrationMutation.mutateAsync(registrationData);
+      setRegistrationResult(response.data);
       setFormStep(3);
       window.scrollTo(0, 0);
-    }, 1500);
+      
+      toast({
+        title: "Registration successful!",
+        description: "Your registration has been confirmed. Check your email for details.",
+      });
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Registration failed. Please try again.";
+      toast({
+        title: "Registration failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
   };
 
   const getTicketPrice = () => {
@@ -140,7 +203,7 @@ const Registration = () => {
 
             <div className="bg-white p-10 rounded-2xl shadow-2xl border border-face-sky-blue/10">
               {formStep === 1 && (
-                <div>
+                <form onSubmit={handleNextStep}>
                   <h2 className="text-3xl font-serif font-bold mb-6 text-face-grey">Personal Information</h2>
                   <p className="text-gray-600 mb-10 text-lg">Please provide your details for the event registration.</p>
                   
@@ -149,6 +212,8 @@ const Registration = () => {
                       <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name*</label>
                       <input 
                         id="firstName" 
+                        name="firstName"
+                        defaultValue={formData.first_name}
                         placeholder="Enter your first name" 
                         required 
                         className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
@@ -158,6 +223,8 @@ const Registration = () => {
                       <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name*</label>
                       <input 
                         id="lastName" 
+                        name="lastName"
+                        defaultValue={formData.last_name}
                         placeholder="Enter your last name" 
                         required 
                         className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
@@ -167,7 +234,9 @@ const Registration = () => {
                       <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address*</label>
                       <input 
                         id="email" 
+                        name="email"
                         type="email" 
+                        defaultValue={formData.email}
                         placeholder="Enter your email" 
                         required 
                         className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
@@ -177,6 +246,8 @@ const Registration = () => {
                       <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number*</label>
                       <input 
                         id="phone" 
+                        name="phone"
+                        defaultValue={formData.phone}
                         placeholder="Enter your phone number" 
                         required 
                         className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
@@ -186,6 +257,8 @@ const Registration = () => {
                       <label htmlFor="organization" className="block text-sm font-medium text-gray-700">Organization / Company</label>
                       <input 
                         id="organization" 
+                        name="organization"
+                        defaultValue={formData.organization}
                         placeholder="Enter your organization name" 
                         className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
                       />
@@ -194,21 +267,34 @@ const Registration = () => {
                       <label htmlFor="country" className="block text-sm font-medium text-gray-700">Country*</label>
                       <select 
                         id="country" 
+                        name="country"
+                        defaultValue={formData.country}
                         required 
                         className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
                       >
                         <option value="">Select your country</option>
-                        <option value="us">United States</option>
-                        <option value="uk">United Kingdom</option>
-                        <option value="ca">Canada</option>
-                        <option value="au">Australia</option>
-                        <option value="other">Other</option>
+                        <option value="United States">United States</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Germany">Germany</option>
+                        <option value="France">France</option>
+                        <option value="Japan">Japan</option>
+                        <option value="Singapore">Singapore</option>
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="South Africa">South Africa</option>
+                        <option value="Brazil">Brazil</option>
+                        <option value="Mexico">Mexico</option>
+                        <option value="India">India</option>
+                        <option value="Other">Other</option>
                       </select>
                     </div>
                     <div className="space-y-3">
                       <label htmlFor="city" className="block text-sm font-medium text-gray-700">City*</label>
                       <input 
                         id="city" 
+                        name="city"
+                        defaultValue={formData.city}
                         placeholder="Enter your city" 
                         required 
                         className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
@@ -218,6 +304,8 @@ const Registration = () => {
                       <label htmlFor="dietaryRequirements" className="block text-sm font-medium text-gray-700">Dietary Requirements or Allergies</label>
                       <textarea 
                         id="dietaryRequirements" 
+                        name="dietaryRequirements"
+                        defaultValue={formData.dietary_requirements}
                         placeholder="Please specify any dietary requirements or allergies" 
                         className="w-full min-h-[100px] px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors resize-vertical"
                       />
@@ -226,13 +314,13 @@ const Registration = () => {
                   
                   <div className="flex justify-end">
                     <button 
-                      onClick={handleNextStep} 
+                      type="submit"
                       className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-white font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 shadow-lg"
                     >
                       Next Step
                     </button>
                   </div>
-                </div>
+                </form>
               )}
 
               {formStep === 2 && (
@@ -362,15 +450,12 @@ const Registration = () => {
                     </button>
                     <button 
                       onClick={handleSubmit}
-                      disabled={submitting}
+                      disabled={createRegistrationMutation.isPending}
                       className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-white font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:transform-none"
                     >
-                      {submitting ? (
+                      {createRegistrationMutation.isPending ? (
                         <span className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
+                          <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
                           Processing...
                         </span>
                       ) : (
@@ -381,7 +466,7 @@ const Registration = () => {
                 </div>
               )}
 
-              {formStep === 3 && (
+              {formStep === 3 && registrationResult && (
                 <div className="text-center py-12">
                   <div className="mb-8 inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100">
                     <CheckCircle className="h-10 w-10 text-green-600" />
@@ -395,20 +480,6 @@ const Registration = () => {
                     <h3 className="text-xl font-bold mb-6 text-face-grey">Your Reservation</h3>
                     <div className="space-y-6 text-left">
                       <div className="flex items-center gap-4">
-                        <Calendar className="h-6 w-6 text-face-sky-blue" />
-                        <div>
-                          <p className="font-medium">November 15, 2024</p>
-                          <p className="text-sm text-gray-500">7:00 PM - 11:00 PM</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <MapPin className="h-6 w-6 text-face-sky-blue" />
-                        <div>
-                          <p className="font-medium">Grand Ballroom</p>
-                          <p className="text-sm text-gray-500">The Prestigious Hotel, New York City</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
                         <Clock className="h-6 w-6 text-face-sky-blue" />
                         <p className="text-sm text-gray-500">
                           Please arrive 30 minutes early for registration
@@ -417,20 +488,26 @@ const Registration = () => {
                       <div className="border-t border-gray-200 pt-4">
                         <div className="flex justify-between mb-2">
                           <span>Ticket Type:</span>
-                          <span className="font-medium">{ticketType === 'standard' ? 'Standard Attendance' : ticketType === 'vip' ? 'VIP Experience' : 'Corporate Table'}</span>
+                          <span className="font-medium">
+                            {ticketType === 'standard' ? 'Standard Attendance' : 
+                             ticketType === 'vip' ? 'VIP Experience' : 'Corporate Table'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span>Price:</span>
-                          <span className="font-bold text-face-sky-blue text-lg">{getTicketPrice()}</span>
+                          <span className="font-bold text-face-sky-blue text-lg">${registrationResult.amount}</span>
                         </div>
                       </div>
                       <div className="text-center text-sm text-gray-500 bg-gray-100 py-3 rounded-lg">
-                        Reference #: FGR24-{Math.floor(100000 + Math.random() * 900000)}
+                        Reference #: {registrationResult.reference_number}
                       </div>
                     </div>
                   </div>
                   
-                  <button className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-white font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 shadow-lg">
+                  <button 
+                    onClick={() => window.location.href = '/'}
+                    className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-white font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 shadow-lg"
+                  >
                     Return to Home
                   </button>
                 </div>
