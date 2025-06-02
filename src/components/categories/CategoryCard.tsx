@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -7,7 +6,9 @@ import {
   Calendar, 
   User, 
   Info, 
-  ChartBar 
+  ChartBar,
+  MapPin,
+  Clock
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,173 +22,252 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import CategoryStats from './CategoryStats';
-import CategoryNomineePreview from './CategoryNomineePreview';
+import { useCategory, usePastWinners } from '@/hooks/useApi';
 
-interface PastWinner {
-  year: number;
-  name: string;
-  organization: string;
-}
-
-interface CategoryNominee {
-  id: number;
-  name: string;
-  organization: string;
-  image: string;
-  bio: string;
-  votes: number;
-  impact: string;
-  testimonials: string[];
-}
-
-interface CategoryStats {
-  countries: { name: string; percentage: number }[];
-  gender: { male: number; female: number; other: number };
-  impactLevel: { high: number; medium: number; emerging: number };
-}
-
+// Using API Category interface
 interface CategoryCardProps {
-  category: {
-    id: number;
-    name: string;
-    description: string;
-    criteria: string[];
-    currentNominees: number;
-    pastWinners: PastWinner[];
-    nominees: CategoryNominee[];
-    stats: CategoryStats;
-    votingOpen: boolean;
-    votingEnds: Date;
-    color: string;
-    region: string;
-  };
-  isAuthenticated: boolean;
-  onLogin: () => void;
+  categoryId: number;
+  showVoteButton?: boolean;
 }
 
-const CategoryCard = ({ category, isAuthenticated, onLogin }: CategoryCardProps) => {
+const CategoryCard = ({ categoryId, showVoteButton = true }: CategoryCardProps) => {
   const navigate = useNavigate();
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
 
-  const handleVoteClick = (categoryId: number) => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Login Required",
-        description: "Please login to vote for this category's nominees.",
-        variant: "destructive"
-      });
-    } else {
-      navigate(`/nominees?category=${categoryId}`);
-    }
+  // Fetch category details from API
+  const { data: categoryResponse, isLoading: categoryLoading, error: categoryError } = useCategory(categoryId);
+  const category = categoryResponse?.data;
+
+  // Fetch past winners for this category
+  const { data: winnersResponse } = usePastWinners({ 
+    category: category?.name 
+  });
+  const pastWinners = winnersResponse?.data || [];
+
+  const handleVoteClick = () => {
+    navigate(`/nominees?category=${categoryId}`);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
+
+  const handleViewNominees = () => {
+    navigate(`/nominees?category=${categoryId}`);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+  };
+
+  // Loading state
+  if (categoryLoading) {
+    return (
+      <Card className="bg-face-white border-face-sky-blue/20 hover:shadow-lg transition-shadow overflow-hidden animate-pulse">
+        <CardHeader className="pb-3">
+          <div className="h-6 bg-face-sky-blue/10 rounded mb-2"></div>
+          <div className="h-4 bg-face-sky-blue/5 rounded"></div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="h-16 bg-face-sky-blue/5 rounded"></div>
+            <div className="h-12 bg-face-sky-blue/5 rounded"></div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <div className="h-10 bg-face-sky-blue/5 rounded w-full"></div>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  // Error state
+  if (categoryError || !category) {
+    return (
+      <Card className="bg-face-white border-red-200 hover:shadow-lg transition-shadow overflow-hidden">
+        <CardContent className="p-6 text-center">
+          <p className="text-red-600 font-manrope">Failed to load category</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card className={`${category.color} border-gray-200 hover:shadow-lg transition-shadow overflow-hidden`}>
+    <Card className="bg-face-white border-face-sky-blue/20 hover:shadow-lg transition-shadow overflow-hidden group">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-xl font-serif text-face-blue">{category.name}</CardTitle>
-          <Badge variant={category.votingOpen ? "default" : "outline"} className={category.votingOpen ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-gray-100 text-gray-600"}>
-            {category.votingOpen ? "Voting Open" : "Voting Closed"}
-          </Badge>
+          <CardTitle className="text-xl font-clash text-face-sky-blue group-hover:text-face-sky-blue-dark transition-colors">
+            {category.name}
+          </CardTitle>
+          <div className="flex flex-col items-end space-y-2">
+            <Badge 
+              variant={category.voting_open ? "default" : "outline"} 
+              className={`font-manrope ${
+                category.voting_open 
+                  ? "bg-green-500 text-white hover:bg-green-600" 
+                  : "bg-face-grey/10 text-face-grey border-face-grey/20"
+              }`}
+            >
+              {category.voting_open ? "Voting Open" : "Voting Closed"}
+            </Badge>
+            <Badge variant="outline" className="text-xs border-face-sky-blue/30 text-face-sky-blue font-manrope">
+              <MapPin className="h-3 w-3 mr-1" />
+              {category.region}
+            </Badge>
+          </div>
         </div>
-        <CardDescription className="text-sm text-gray-600 mt-2">
+        <CardDescription className="text-sm text-face-grey/80 mt-2 font-manrope leading-relaxed">
           {category.description}
         </CardDescription>
       </CardHeader>
+      
       <CardContent>
         <div className="space-y-4">
+          {/* Evaluation Criteria */}
           <div>
-            <h4 className="text-sm font-medium mb-2 flex items-center">
-              <Info className="h-4 w-4 mr-1" /> Evaluation Criteria
+            <h4 className="text-sm font-medium mb-2 flex items-center font-clash text-face-grey">
+              <Info className="h-4 w-4 mr-1 text-face-sky-blue" /> Evaluation Criteria
             </h4>
-            <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
+            <ul className="text-sm text-face-grey/80 list-disc pl-5 space-y-1 font-manrope">
               {category.criteria.map((criterion, idx) => (
                 <li key={idx}>{criterion}</li>
               ))}
             </ul>
           </div>
           
-          <div>
-            <h4 className="text-sm font-medium mb-2 flex items-center">
-              <Trophy className="h-4 w-4 mr-1" /> Past Winners
-            </h4>
-            <div className="space-y-2">
-              {category.pastWinners.map((winner, idx) => (
-                <div key={idx} className="bg-white/70 p-2 rounded-md text-sm">
-                  <div className="font-medium">{winner.name}</div>
-                  <div className="text-xs text-gray-600 flex justify-between">
-                    <span>{winner.organization}</span>
-                    <span>{winner.year}</span>
+          {/* Past Winners */}
+          {pastWinners.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium mb-2 flex items-center font-clash text-face-grey">
+                <Trophy className="h-4 w-4 mr-1 text-face-sky-blue" /> Past Winners
+              </h4>
+              <div className="space-y-2">
+                {pastWinners.slice(0, 2).map((winner) => (
+                  <div key={winner.id} className="bg-face-sky-blue/5 p-3 rounded-lg text-sm border border-face-sky-blue/10">
+                    <div className="font-medium text-face-grey font-clash">{winner.name}</div>
+                    <div className="text-xs text-face-grey/60 flex justify-between font-manrope mt-1">
+                      <span>{winner.organization}</span>
+                      <span className="text-face-sky-blue font-medium">{winner.year}</span>
+                    </div>
                   </div>
+                ))}
+                {pastWinners.length > 2 && (
+                  <p className="text-xs text-face-grey/60 text-center font-manrope">
+                    +{pastWinners.length - 2} more winner{pastWinners.length - 2 !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Current Nominees Overview */}
+          <div>
+            <h4 className="text-sm font-medium mb-2 flex items-center font-clash text-face-grey">
+              <User className="h-4 w-4 mr-1 text-face-sky-blue" /> Current Nominees
+            </h4>
+            <div className="bg-face-sky-blue/5 p-3 rounded-lg text-center border border-face-sky-blue/10">
+              <span className="font-bold text-2xl text-face-sky-blue font-clash">
+                {category.nominees_count}
+              </span>
+              <span className="block text-xs text-face-grey/60 font-manrope mt-1">
+                qualified nominees
+              </span>
+              {category.total_votes > 0 && (
+                <div className="mt-2 pt-2 border-t border-face-sky-blue/20">
+                  <span className="text-sm text-face-sky-blue font-medium font-manrope">
+                    {category.total_votes} votes cast
+                  </span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
           
-          {/* Category Stats */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full bg-white/70 border-gray-200 hover:bg-white">
-                <ChartBar className="h-4 w-4 mr-2" /> View Category Stats
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>{category.name} - Statistics</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 my-4">
-                {category.stats && <CategoryStats stats={category.stats} />}
+          {/* Voting Timeline */}
+          {category.voting_open && category.days_remaining !== undefined && (
+            <div>
+              <h4 className="text-sm font-medium mb-2 flex items-center font-clash text-face-grey">
+                <Calendar className="h-4 w-4 mr-1 text-face-sky-blue" /> Voting Timeline
+              </h4>
+              <div className="bg-face-sky-blue/5 p-3 rounded-lg text-center border border-face-sky-blue/10">
+                <div className="text-sm text-face-grey/80 mb-1 font-manrope">Voting ends in</div>
+                <div className="flex justify-center items-center space-x-2">
+                  <span className={`font-bold text-xl font-clash ${
+                    category.days_remaining <= 1 ? 'text-red-500' : 
+                    category.days_remaining <= 7 ? 'text-orange-500' : 
+                    'text-face-sky-blue'
+                  }`}>
+                    {category.days_remaining}
+                  </span>
+                  <span className="text-sm text-face-grey/80 font-manrope">
+                    day{category.days_remaining !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                {category.voting_ends_at && (
+                  <div className="text-xs text-face-grey/60 mt-2 font-manrope">
+                    <Clock className="h-3 w-3 inline mr-1" />
+                    {new Date(category.voting_ends_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </div>
+                )}
               </div>
-            </DialogContent>
-          </Dialog>
-          
-          {/* Current Nominees */}
+            </div>
+          )}
+
+          {/* Top Nominees Preview */}
           {category.nominees && category.nominees.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium mb-2 flex items-center">
-                <User className="h-4 w-4 mr-1" /> Top Nominees
+              <h4 className="text-sm font-medium mb-2 flex items-center font-clash text-face-grey">
+                <Award className="h-4 w-4 mr-1 text-face-sky-blue" /> Top Nominees
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {category.nominees.slice(0, 2).map((nominee) => (
-                  <CategoryNomineePreview key={nominee.id} nominee={nominee} />
+                  <div key={nominee.id} className="bg-face-white p-3 rounded-lg border border-face-sky-blue/10 hover:border-face-sky-blue/30 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <img 
+                        src={nominee.image_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'} 
+                        alt={nominee.name}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-face-sky-blue/20"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop';
+                        }}
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-face-grey font-clash">{nominee.name}</div>
+                        <div className="text-xs text-face-grey/60 font-manrope">{nominee.organization}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-face-sky-blue font-manrope">{nominee.votes} votes</div>
+                        <div className="text-xs text-face-grey/60 font-manrope">
+                          {nominee.voting_percentage.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
           )}
-          
-          {category.votingOpen && (
-            <div>
-              <h4 className="text-sm font-medium mb-2 flex items-center">
-                <Calendar className="h-4 w-4 mr-1" /> Voting Timeline
-              </h4>
-              <div className="bg-white/70 p-2 rounded-md text-sm">
-                <div className="text-center mb-1">Voting ends in</div>
-                <div className="flex justify-center space-x-2 text-face-blue font-bold">
-                  <span>{Math.ceil((category.votingEnds.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}</span>
-                  <span>days</span>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div>
-            <h4 className="text-sm font-medium mb-2 flex items-center">
-              <User className="h-4 w-4 mr-1" /> Current Nominees
-            </h4>
-            <div className="bg-white/70 p-2 rounded-md text-sm text-center">
-              <span className="font-bold text-xl">{category.currentNominees}</span>
-              <span className="block text-xs text-gray-600">qualified nominees</span>
-            </div>
-          </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-center pt-0">
+      
+      <CardFooter className="flex flex-col space-y-2 pt-4">
+        {showVoteButton && (
+          <Button 
+            onClick={handleVoteClick} 
+            disabled={!category.voting_open}
+            className={`w-full font-medium font-manrope transition-all duration-300 ${
+              category.voting_open 
+                ? 'bg-face-sky-blue hover:bg-face-sky-blue-dark text-face-white shadow-lg hover:shadow-xl' 
+                : 'bg-face-grey/20 text-face-grey/60 cursor-not-allowed'
+            }`}
+          >
+            {category.voting_open ? "Vote for Nominees" : "Voting Closed"}
+          </Button>
+        )}
+        
         <Button 
-          onClick={() => handleVoteClick(category.id)} 
-          disabled={!category.votingOpen}
-          className={`w-full ${category.votingOpen ? 'bg-face-gold hover:bg-yellow-500 text-face-blue' : 'bg-gray-200 text-gray-500'}`}
+          variant="outline"
+          onClick={handleViewNominees}
+          className="w-full border-face-sky-blue/30 text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white font-medium font-manrope transition-all duration-300"
         >
-          {category.votingOpen ? "View & Vote Nominees" : "Voting Closed"}
+          View All Nominees ({category.nominees_count})
         </Button>
       </CardFooter>
     </Card>

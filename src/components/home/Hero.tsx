@@ -1,8 +1,32 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Award, Star, Users, Trophy } from 'lucide-react';
+import { ArrowRight, Award, Star, Users, Trophy, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCategoryStats, useCategories, useSetting } from '@/hooks/useApi';
 
 const Hero = () => {
+  // Fetch real-time data from API
+  const { data: statsResponse, isLoading: statsLoading } = useCategoryStats();
+  const { data: categoriesResponse, isLoading: categoriesLoading } = useCategories({ voting_only: true });
+  const { data: votingEnabledResponse } = useSetting('voting_enabled');
+  
+  const stats = statsResponse?.data;
+  const votingCategories = categoriesResponse?.data || [];
+  const votingEnabled = votingEnabledResponse?.data?.value !== false;
+  
+  // Calculate dynamic stats
+  const totalNominees = stats?.total_nominees || 0;
+  const activeVotingCategories = stats?.active_voting_categories || 0;
+  const totalCategories = stats?.total_categories || 12;
+  const totalVotes = stats?.total_votes || 0;
+  
+  // Calculate days remaining (find the nearest deadline)
+  const daysRemaining = votingCategories.reduce((min, category) => {
+    if (category.voting_open && category.days_remaining !== undefined) {
+      return min === null ? category.days_remaining : Math.min(min, category.days_remaining);
+    }
+    return min;
+  }, null as number | null);
+
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -29,10 +53,7 @@ const Hero = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Text Content */}
-            <div className="text-face-white space-y-8">
-              {/* Logo Badge */}
-             
-              
+            <div className="text-face-white space-y-8">              
               {/* Main Heading */}
               <div className="space-y-6">
                 <h1 className="text-5xl md:text-7xl font-bold leading-tight animate-fade-in font-clash">
@@ -77,11 +98,17 @@ const Hero = () => {
                 </Button>
               </div>
               
-              {/* Stats */}
+              {/* Dynamic Stats */}
               <div className="flex flex-wrap gap-6 pt-4 animate-fade-in delay-700">
                 <div className="flex items-center text-face-white/90">
                   <Trophy className="h-5 w-5 mr-2" />
-                  <span className="font-medium font-manrope">240+ Winners Honored</span>
+                  <span className="font-medium font-manrope">
+                    {statsLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin inline" />
+                    ) : (
+                      `${totalVotes}+ Votes Cast`
+                    )}
+                  </span>
                 </div>
                 <div className="flex items-center text-face-white/90">
                   <Users className="h-5 w-5 mr-2" />
@@ -89,7 +116,13 @@ const Hero = () => {
                 </div>
                 <div className="flex items-center text-face-white/90">
                   <Star className="h-5 w-5 mr-2" />
-                  <span className="font-medium font-manrope">12 Categories</span>
+                  <span className="font-medium font-manrope">
+                    {statsLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin inline" />
+                    ) : (
+                      `${totalCategories} Categories`
+                    )}
+                  </span>
                 </div>
               </div>
             </div>
@@ -100,42 +133,85 @@ const Hero = () => {
                 {/* Main Feature Card */}
                 <div className="bg-face-white/10 backdrop-blur-lg p-8 rounded-3xl border border-face-white/20 shadow-2xl">
                   <div className="flex items-center justify-center mb-6">
-                    <div className="w-4 h-4 bg-face-white rounded-full animate-pulse mr-3"></div>
-                    <span className="font-semibold uppercase text-face-white text-sm tracking-wider font-manrope">Current Highlight</span>
+                    <div className={`w-4 h-4 rounded-full mr-3 ${
+                      votingEnabled ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'
+                    }`}></div>
+                    <span className="font-semibold uppercase text-face-white text-sm tracking-wider font-manrope">
+                      {votingEnabled ? 'Current Highlight' : 'Coming Soon'}
+                    </span>
                   </div>
                   
                   <h3 className="text-3xl font-bold mb-4 text-face-white font-clash">
-                    2025 Voting Now Open
+                    {votingEnabled ? '2025 Voting Now Open' : '2025 Awards Coming Soon'}
                   </h3>
                   
                   <p className="text-face-white/90 mb-6 leading-relaxed font-manrope">
-                    Cast your vote for outstanding nominees across 12 categories representing innovation and excellence from around the world.
+                    {votingEnabled 
+                      ? `Cast your vote for outstanding nominees across ${totalCategories} categories representing innovation and excellence from around the world.`
+                      : 'Get ready for our upcoming awards ceremony. Stay tuned for nominee announcements and voting details.'
+                    }
                   </p>
                   
-                  {/* Mini Stats */}
+                  {/* Dynamic Mini Stats */}
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-face-white font-clash">32</div>
-                      <div className="text-xs text-face-white/70 font-manrope">Active Nominees</div>
+                      <div className="text-2xl font-bold text-face-white font-clash">
+                        {statsLoading || categoriesLoading ? (
+                          <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                        ) : (
+                          totalNominees
+                        )}
+                      </div>
+                      <div className="text-xs text-face-white/70 font-manrope">
+                        {votingEnabled ? 'Active Nominees' : 'Total Nominees'}
+                      </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-face-white font-clash">4</div>
-                      <div className="text-xs text-face-white/70 font-manrope">Open Categories</div>
+                      <div className="text-2xl font-bold text-face-white font-clash">
+                        {statsLoading || categoriesLoading ? (
+                          <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                        ) : (
+                          votingEnabled ? activeVotingCategories : totalCategories
+                        )}
+                      </div>
+                      <div className="text-xs text-face-white/70 font-manrope">
+                        {votingEnabled ? 'Open Categories' : 'Total Categories'}
+                      </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-face-white font-clash">30</div>
-                      <div className="text-xs text-face-white/70 font-manrope">Days Left</div>
+                      <div className="text-2xl font-bold text-face-white font-clash">
+                        {statsLoading || categoriesLoading ? (
+                          <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                        ) : daysRemaining !== null ? (
+                          daysRemaining
+                        ) : votingEnabled ? (
+                          '∞'
+                        ) : (
+                          'TBA'
+                        )}
+                      </div>
+                      <div className="text-xs text-face-white/70 font-manrope">
+                        {votingEnabled 
+                          ? (daysRemaining !== null ? 'Days Left' : 'Open Voting')
+                          : 'Announcement'
+                        }
+                      </div>
                     </div>
                   </div>
                   
                   <Button
                     asChild
-                    className="w-full bg-face-sky-blue text-face-white hover:bg-face-sky-blue-dark shadow-xl rounded-xl font-semibold py-3 font-manrope"
+                    className={`w-full shadow-xl rounded-xl font-semibold py-3 font-manrope ${
+                      votingEnabled 
+                        ? 'bg-face-sky-blue text-face-white hover:bg-face-sky-blue-dark' 
+                        : 'bg-face-white/20 text-face-white/80 cursor-not-allowed'
+                    }`}
                     onClick={handleScrollToTop}
+                    disabled={!votingEnabled}
                   >
-                    <Link to="/nominees" className="flex items-center justify-center">
-                      Cast Your Vote
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                    <Link to={votingEnabled ? "/nominees" : "#"} className="flex items-center justify-center">
+                      {votingEnabled ? 'Cast Your Vote' : 'Voting Closed'}
+                      {votingEnabled && <ArrowRight className="ml-2 h-4 w-4" />}
                     </Link>
                   </Button>
                 </div>

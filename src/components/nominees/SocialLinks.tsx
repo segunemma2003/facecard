@@ -1,10 +1,14 @@
-
 import { Globe, Linkedin, Twitter, Github, Instagram, Facebook, Youtube } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { type SocialMediaLink } from '@/models/nomineeData';
+
+// Using API SocialLink interface
+interface SocialLink {
+  platform: string;
+  url: string;
+}
 
 interface SocialLinksProps {
-  links: SocialMediaLink[];
+  links: SocialLink[];
 }
 
 const SocialLinks = ({ links }: SocialLinksProps) => {
@@ -14,6 +18,7 @@ const SocialLinks = ({ links }: SocialLinksProps) => {
       case 'linkedin':
         return <Linkedin className="h-4 w-4" />;
       case 'twitter':
+      case 'x':
         return <Twitter className="h-4 w-4" />;
       case 'github':
         return <Github className="h-4 w-4" />;
@@ -28,14 +33,43 @@ const SocialLinks = ({ links }: SocialLinksProps) => {
     }
   };
 
+  // Function to get platform color
+  const getPlatformColor = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'linkedin':
+        return 'hover:bg-blue-600 hover:text-white hover:border-blue-600';
+      case 'twitter':
+      case 'x':
+        return 'hover:bg-sky-500 hover:text-white hover:border-sky-500';
+      case 'github':
+        return 'hover:bg-gray-800 hover:text-white hover:border-gray-800';
+      case 'instagram':
+        return 'hover:bg-pink-600 hover:text-white hover:border-pink-600';
+      case 'facebook':
+        return 'hover:bg-blue-700 hover:text-white hover:border-blue-700';
+      case 'youtube':
+        return 'hover:bg-red-600 hover:text-white hover:border-red-600';
+      default:
+        return 'hover:bg-face-sky-blue hover:text-face-white hover:border-face-sky-blue';
+    }
+  };
+
   // Group links by platform type
-  const primaryPlatforms = ['linkedin', 'twitter', 'instagram', 'facebook'];
+  const primaryPlatforms = ['linkedin', 'twitter', 'x', 'instagram', 'facebook'];
   const primaryLinks = links.filter(link => 
     primaryPlatforms.includes(link.platform.toLowerCase())
   );
   const secondaryLinks = links.filter(link => 
     !primaryPlatforms.includes(link.platform.toLowerCase())
   );
+
+  if (links.length === 0) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-face-grey/60 text-sm font-manrope">No social links available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -46,7 +80,7 @@ const SocialLinks = ({ links }: SocialLinksProps) => {
             key={index} 
             variant="outline" 
             size="sm" 
-            className="hover:bg-gray-100 transition-all"
+            className={`border-face-sky-blue/30 text-face-grey transition-all duration-300 font-manrope ${getPlatformColor(link.platform)}`}
             asChild
           >
             <a 
@@ -57,7 +91,7 @@ const SocialLinks = ({ links }: SocialLinksProps) => {
               aria-label={`Visit ${link.platform} profile`}
             >
               {getIcon(link.platform)}
-              <span className="ml-1">{link.platform}</span>
+              <span className="ml-2 capitalize">{link.platform}</span>
             </a>
           </Button>
         ))}
@@ -71,7 +105,7 @@ const SocialLinks = ({ links }: SocialLinksProps) => {
               key={index} 
               variant="outline" 
               size="sm" 
-              className="hover:bg-gray-100 border-dashed"
+              className={`border-face-sky-blue/20 border-dashed text-face-grey/80 transition-all duration-300 font-manrope ${getPlatformColor(link.platform)}`}
               asChild
             >
               <a 
@@ -82,7 +116,7 @@ const SocialLinks = ({ links }: SocialLinksProps) => {
                 aria-label={`Visit ${link.platform} profile`}
               >
                 {getIcon(link.platform)}
-                <span className="ml-1">{link.platform}</span>
+                <span className="ml-2 capitalize">{link.platform}</span>
               </a>
             </Button>
           ))}

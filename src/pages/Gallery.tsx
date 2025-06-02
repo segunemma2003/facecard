@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Image, X, ChevronLeft, ChevronRight, Calendar, MapPin, Users, Award, Loader2, AlertCircle } from 'lucide-react';
@@ -20,8 +20,8 @@ const Gallery = () => {
   const galleryData = galleryResponse?.data || [];
   const years = yearsResponse?.data || [];
 
-  // Set default year to the most recent year
-  useState(() => {
+  // Set default year to the most recent year - FIXED: Use useEffect instead of useState
+  useEffect(() => {
     if (years.length > 0 && !selectedYear) {
       setSelectedYear(years[0]);
     }
@@ -162,23 +162,25 @@ const Gallery = () => {
       {/* Year selector with FACE brand styling */}
       <section className="py-16 bg-face-white">
         <div className="container mx-auto px-4">
-          <div className="flex justify-center mb-16">
-            <div className="bg-white shadow-2xl border-4 border-face-sky-blue/20 p-3 rounded-2xl">
-              {years.map((year) => (
-                <button
-                  key={year}
-                  onClick={() => setSelectedYear(year)}
-                  className={`px-8 py-4 mx-2 text-xl font-bold rounded-xl transition-all duration-300 font-serif ${
-                    selectedYear === year
-                      ? 'bg-face-sky-blue text-white shadow-xl transform scale-105'
-                      : 'bg-face-white text-face-grey hover:bg-face-sky-blue/10 hover:text-face-sky-blue'
-                  }`}
-                >
-                  {year} Events
-                </button>
-              ))}
+          {years.length > 0 && (
+            <div className="flex justify-center mb-16">
+              <div className="bg-white shadow-2xl border-4 border-face-sky-blue/20 p-3 rounded-2xl">
+                {years.map((year) => (
+                  <button
+                    key={year}
+                    onClick={() => setSelectedYear(year)}
+                    className={`px-8 py-4 mx-2 text-xl font-bold rounded-xl transition-all duration-300 font-serif ${
+                      selectedYear === year
+                        ? 'bg-face-sky-blue text-white shadow-xl transform scale-105'
+                        : 'bg-face-white text-face-grey hover:bg-face-sky-blue/10 hover:text-face-sky-blue'
+                    }`}
+                  >
+                    {year} Events
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           
           {/* Gallery content with FACE brand styling */}
           <div className="space-y-24">
@@ -271,13 +273,13 @@ const Gallery = () => {
           </div>
           
           {/* No events message */}
-          {galleryData.length === 0 && (
+          {galleryData.length === 0 && !isLoading && (
             <div className="text-center py-20">
               <div className="bg-white rounded-3xl p-12 shadow-xl border border-face-sky-blue/20 max-w-md mx-auto">
                 <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-6" />
                 <h3 className="text-2xl font-bold text-gray-700 mb-4">No Events Found</h3>
                 <p className="text-gray-500 text-lg">
-                  No events found for {selectedYear}. Try selecting a different year.
+                  {selectedYear ? `No events found for ${selectedYear}. Try selecting a different year.` : 'No events available at the moment.'}
                 </p>
               </div>
             </div>
@@ -286,7 +288,7 @@ const Gallery = () => {
       </section>
 
       {/* Enhanced Lightbox */}
-      {isLightboxOpen && galleryData[currentEventIndex] && galleryData[currentEventIndex].images[currentImageIndex] && (
+      {isLightboxOpen && galleryData[currentEventIndex] && galleryData[currentEventIndex].images && galleryData[currentEventIndex].images[currentImageIndex] && (
         <div className="fixed inset-0 z-50 bg-black/98 backdrop-blur-md flex items-center justify-center">
           <button 
             className="absolute top-8 right-8 text-white hover:text-yellow-400 p-6 bg-black/60 hover:bg-black/80 rounded-full backdrop-blur-sm transition-all duration-300 shadow-2xl border-2 border-white/20 hover:border-yellow-400"
@@ -353,10 +355,16 @@ const Gallery = () => {
               Join us at upcoming FACE Awards events and become part of our global community celebrating excellence.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <button className="bg-white text-face-sky-blue hover:bg-face-sky-blue hover:text-white border-4 border-white hover:border-white shadow-2xl text-xl font-bold py-6 px-12 rounded-full transform hover:scale-105 transition-all duration-300">
+              <button 
+                onClick={() => window.location.href = '/registration'}
+                className="bg-white text-face-sky-blue hover:bg-face-sky-blue hover:text-white border-4 border-white hover:border-white shadow-2xl text-xl font-bold py-6 px-12 rounded-full transform hover:scale-105 transition-all duration-300"
+              >
                 Register for Next Event
               </button>
-              <button className="border-4 border-white bg-transparent text-white hover:bg-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-6 px-12 rounded-full transform hover:scale-105 transition-all duration-300">
+              <button 
+                onClick={() => window.location.href = '/nominees'}
+                className="border-4 border-white bg-transparent text-white hover:bg-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-6 px-12 rounded-full transform hover:scale-105 transition-all duration-300"
+              >
                 View Current Nominees
               </button>
             </div>

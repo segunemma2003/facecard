@@ -1,84 +1,97 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Award, ChevronDown } from 'lucide-react';
+import { Award, ChevronDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WinnerCard from '../awards/WinnerCard';
-
-// Sample past winners data
-const pastWinnersData = {
-  "2023": [
-    {
-      id: 1,
-      name: "Dr. Sarah Chen",
-      category: "Technology Innovation",
-      achievement: "Revolutionary AI healthcare diagnostics platform",
-      imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
-    },
-    {
-      id: 2,
-      name: "EcoSolutions Inc.",
-      category: "Sustainable Development",
-      achievement: "Pioneering carbon-negative manufacturing processes",
-      imageUrl: "https://images.unsplash.com/photo-1560179707-f14e90ef3623"
-    },
-    {
-      id: 3,
-      name: "James Rodriguez",
-      category: "Creative Arts",
-      achievement: "Groundbreaking digital art fusion and virtual reality exhibitions",
-      imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d"
-    }
-  ],
-  "2022": [
-    {
-      id: 4,
-      name: "GlobalEdu Foundation",
-      category: "Educational Excellence",
-      achievement: "Expanding access to quality education in underserved communities",
-      imageUrl: "https://images.unsplash.com/photo-1541872705-74c0899e25ad"
-    },
-    {
-      id: 5,
-      name: "Maria Santos",
-      category: "Humanitarian Impact",
-      achievement: "Leading refugee resettlement and integration programs",
-      imageUrl: "https://images.unsplash.com/photo-1580489944761-15a19d654956"
-    }
-  ],
-  "2021": [
-    {
-      id: 6,
-      name: "Robert Kiyoshi",
-      category: "Leadership Excellence",
-      achievement: "Transforming organizational culture and business performance",
-      imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
-    },
-    {
-      id: 7,
-      name: "HealthTech Innovations",
-      category: "Technology Innovation",
-      achievement: "Developing accessible medical devices for remote areas",
-      imageUrl: "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa"
-    }
-  ]
-};
-
-const years = ["2023", "2022", "2021"];
+import { usePastWinners, usePastWinnerYears } from '@/hooks/useApi';
 
 const PastWinnersSection = () => {
-  const [selectedYear, setSelectedYear] = useState("2023");
+  const [selectedYear, setSelectedYear] = useState<string>("");
+
+  // Fetch available years
+  const { data: yearsResponse, isLoading: yearsLoading } = usePastWinnerYears();
+  const availableYears = yearsResponse?.data || [];
+
+  // Fetch past winners for selected year
+  const { data: winnersResponse, isLoading: winnersLoading, error: winnersError } = usePastWinners(
+    selectedYear ? { year: parseInt(selectedYear) } : undefined
+  );
+  const pastWinners = winnersResponse?.data || [];
+
+  // Set default year when years are loaded
+  useEffect(() => {
+    if (availableYears.length > 0 && !selectedYear) {
+      // Sort years in descending order and select the latest
+      const sortedYears = [...availableYears].sort((a, b) => b - a);
+      setSelectedYear(sortedYears[0].toString());
+    }
+  }, [availableYears, selectedYear]);
+
+  // Loading state
+  if (yearsLoading) {
+    return (
+      <section className="section-padding bg-face-sky-blue/5" id="past-winners">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <div className="inline-block mb-3">
+              <img 
+                src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
+                alt="FACE Awards Logo" 
+                className="h-10 w-auto"
+              />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">Past Winners</h2>
+            <p className="text-lg text-face-grey/80 font-manrope">Loading past winners...</p>
+          </div>
+          <div className="flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-face-sky-blue" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // No years available
+  if (availableYears.length === 0) {
+    return (
+      <section className="section-padding bg-face-sky-blue/5" id="past-winners">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <div className="inline-block mb-3">
+              <img 
+                src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
+                alt="FACE Awards Logo" 
+                className="h-10 w-auto"
+              />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">Past Winners</h2>
+            <p className="text-lg text-face-grey/80 font-manrope">
+              Past winners will be featured here after our first awards ceremony.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Sort years in descending order for display
+  const sortedYears = [...availableYears].sort((a, b) => b - a).map(year => year.toString());
 
   return (
-    <section className="section-padding bg-brand-blue/5" id="past-winners">
+    <section className="section-padding bg-face-sky-blue/5" id="past-winners">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <div className="inline-block mb-3">
-            <Award className="h-10 w-10 text-brand-blue" />
+            <img 
+              src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
+              alt="FACE Awards Logo" 
+              className="h-10 w-auto"
+            />
           </div>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-brand-grey">Past Winners</h2>
-          <p className="text-lg text-brand-grey/80">
+          <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">Past Winners</h2>
+          <p className="text-lg text-face-grey/80 font-manrope">
             Celebrating the remarkable individuals and organizations who have previously received 
             the FACE Awards for their outstanding contributions.
           </p>
@@ -88,11 +101,11 @@ const PastWinnersSection = () => {
           {/* Year selector - For mobile */}
           <div className="md:hidden">
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-full border-brand-blue">
+              <SelectTrigger className="w-full border-face-sky-blue">
                 <SelectValue placeholder="Select Year" />
               </SelectTrigger>
               <SelectContent>
-                {years.map((year) => (
+                {sortedYears.map((year) => (
                   <SelectItem key={year} value={year}>
                     {year} Winners
                   </SelectItem>
@@ -103,14 +116,14 @@ const PastWinnersSection = () => {
 
           {/* Year tabs - For desktop */}
           <div className="hidden md:block">
-            <Tabs defaultValue="2023" value={selectedYear} onValueChange={setSelectedYear}>
+            <Tabs value={selectedYear} onValueChange={setSelectedYear}>
               <div className="flex justify-center mb-8">
-                <TabsList className="bg-brand-white border border-brand-blue/20">
-                  {years.map((year) => (
+                <TabsList className="bg-face-white border border-face-sky-blue/20">
+                  {sortedYears.map((year) => (
                     <TabsTrigger 
                       key={year} 
                       value={year} 
-                      className="px-8 data-[state=active]:bg-brand-blue data-[state=active]:text-brand-white"
+                      className="px-8 data-[state=active]:bg-face-sky-blue data-[state=active]:text-face-white font-manrope"
                     >
                       {year}
                     </TabsTrigger>
@@ -118,13 +131,38 @@ const PastWinnersSection = () => {
                 </TabsList>
               </div>
 
-              {years.map((year) => (
+              {sortedYears.map((year) => (
                 <TabsContent key={year} value={year} className="mt-0">
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {pastWinnersData[year as keyof typeof pastWinnersData].map((winner) => (
-                      <WinnerCard key={winner.id} winner={winner} />
-                    ))}
-                  </div>
+                  {winnersLoading ? (
+                    <div className="flex justify-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin text-face-sky-blue" />
+                    </div>
+                  ) : winnersError ? (
+                    <div className="text-center py-12">
+                      <p className="text-red-600 font-manrope">Failed to load winners for {year}</p>
+                    </div>
+                  ) : pastWinners.length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-face-grey/60 font-manrope">No winners available for {year}</p>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {pastWinners.map((winner) => (
+                        <WinnerCard 
+                          key={winner.id} 
+                          winner={{
+                            id: winner.id,
+                            name: winner.name,
+                            category: winner.category,
+                            achievement: winner.achievement,
+                            imageUrl: winner.image_url,
+                            organization: winner.organization,
+                            year: winner.year
+                          }} 
+                        />
+                      ))}
+                    </div>
+                  )}
                 </TabsContent>
               ))}
             </Tabs>
@@ -132,16 +170,51 @@ const PastWinnersSection = () => {
 
           {/* Mobile content display */}
           <div className="md:hidden mt-6">
-            <div className="grid grid-cols-1 gap-6">
-              {pastWinnersData[selectedYear as keyof typeof pastWinnersData].map((winner) => (
-                <WinnerCard key={winner.id} winner={winner} />
-              ))}
-            </div>
+            {winnersLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-face-sky-blue" />
+              </div>
+            ) : winnersError ? (
+              <div className="text-center py-12">
+                <p className="text-red-600 font-manrope">Failed to load winners</p>
+              </div>
+            ) : pastWinners.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-face-grey/60 font-manrope">No winners available for {selectedYear}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                {pastWinners.map((winner) => (
+                  <WinnerCard 
+                    key={winner.id} 
+                    winner={{
+                      id: winner.id,
+                      name: winner.name,
+                      category: winner.category,
+                      achievement: winner.achievement,
+                      imageUrl: winner.image_url,
+                      organization: winner.organization,
+                      year: winner.year
+                    }} 
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Show total count and link to full page */}
         <div className="text-center mt-10">
-          <Button asChild variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-brand-white">
+          {pastWinners.length > 0 && (
+            <p className="text-sm text-face-grey/60 mb-4 font-manrope">
+              Showing {pastWinners.length} winner{pastWinners.length !== 1 ? 's' : ''} from {selectedYear}
+            </p>
+          )}
+          <Button 
+            asChild 
+            variant="outline" 
+            className="border-face-sky-blue text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white font-manrope"
+          >
             <Link to="/past-winners" className="flex items-center gap-2">
               View All Past Winners
               <ChevronDown className="h-4 w-4" />
