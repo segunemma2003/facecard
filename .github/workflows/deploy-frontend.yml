@@ -1,4 +1,4 @@
-name: Deploy React Frontend (Rollup Fix)
+name: Deploy React Frontend (Password Auth)
 
 on:
   push:
@@ -18,19 +18,10 @@ jobs:
         node-version: '23.1'
         cache: 'npm'
 
-    - name: Fix Rollup dependency issue
+    - name: Clean install dependencies
       run: |
-        # Clear npm cache
-        npm cache clean --force
-        
-        # Remove package-lock and node_modules
         rm -rf package-lock.json node_modules
-        
-        # Install dependencies
         npm install
-        
-        # Force install the missing Rollup platform package
-        npm install @rollup/rollup-linux-x64-gnu --save-dev
 
     - name: Build React app
       run: npm run build
@@ -42,8 +33,10 @@ jobs:
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_KEY }}
+        password: ${{ secrets.VPS_PASSWORD }}  # Use password instead of key
         port: ${{ secrets.VPS_PORT }}
+        timeout: 60s
+        command_timeout: 300s
         script: |
           FRONTEND_DIR="/var/www/faceglobal-recognition.com"
           BACKUP_DIR="/var/www/faceglobal-recognition.com.backup"
@@ -62,9 +55,9 @@ jobs:
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_KEY }}
+        password: ${{ secrets.VPS_PASSWORD }}  # Use password instead of key
         port: ${{ secrets.VPS_PORT }}
-        source: "build/*"
+        source: "dist/*"
         target: "/tmp/react-build"
         strip_components: 1
 
@@ -73,7 +66,7 @@ jobs:
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_KEY }}
+        password: ${{ secrets.VPS_PASSWORD }}  # Use password instead of key
         port: ${{ secrets.VPS_PORT }}
         script: |
           sudo rm -rf /var/www/faceglobal-recognition.com/*
