@@ -1,4 +1,3 @@
-// src/lib/api.ts
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.faceglobal-recognition.com/api/v1';
 
 class ApiClient {
@@ -12,25 +11,44 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
     
     const config: RequestInit = {
+      // Add credentials to include cookies/auth headers
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        // Add Origin header explicitly
+        'Origin': window.location.origin,
         ...options?.headers,
       },
       ...options,
     };
 
     try {
+      console.log('Making request to:', url); // Debug log
+      console.log('Request config:', config); // Debug log
+      
       const response = await fetch(url, config);
       
+      console.log('Response status:', response.status); // Debug log
+      console.log('Response headers:', Object.fromEntries(response.headers.entries())); // Debug log
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText); // Debug log
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
       
       const data = await response.json();
+      console.log('Response data:', data); // Debug log
       return data;
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // More detailed error handling
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
+      }
+      
       throw error;
     }
   }
@@ -182,7 +200,7 @@ class ApiClient {
   }
 }
 
-// Types
+// Types (keep all your existing types here)
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -371,14 +389,41 @@ export interface RegistrationDetails extends RegistrationResponse {
 // Create API client instance
 export const apiClient = new ApiClient(API_BASE_URL);
 
-// Utility function to get user's IP address (for voting)
+// Updated utility function to get user's IP address
 export const getUserIP = async (): Promise<string> => {
   try {
-    const response = await fetch('https://api.ipify.org?format=json');
-    const data = await response.json();
-    return data.ip;
+    // Try multiple IP services in case one fails
+    const ipServices = [
+      'https://api.ipify.org?format=json',
+      'https://httpbin.org/ip',
+      'https://api.myip.com'
+    ];
+    
+    for (const service of ipServices) {
+      try {
+        const response = await fetch(service, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Different services return IP in different formats
+          return data.ip || data.origin || data.query || '127.0.0.1';
+        }
+      } catch (serviceError) {
+        console.warn(`IP service ${service} failed:`, serviceError);
+        continue;
+      }
+    }
+    
+    // If all services fail, use a fallback
+    console.warn('All IP services failed, using fallback IP');
+    return '127.0.0.1';
   } catch (error) {
     console.error('Failed to get IP address:', error);
-    return '127.0.0.1'; // Fallback IP
+    return '127.0.0.1';
   }
 };
