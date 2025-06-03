@@ -1,5 +1,5 @@
 // src/lib/api.ts
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://192.168.0.106:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.faceglobal-recognition.com/api/v1';
 
 class ApiClient {
   private baseURL: string;
