@@ -344,9 +344,8 @@ const Contact = () => {
                       <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">Visit Us</h3>
                       <p className="text-face-grey/60 leading-relaxed font-manrope">
                         FACE Awards Global Headquarters<br />
-                        123 Recognition Avenue<br />
-                        Suite 456<br />
-                        New York, NY 10001<br />
+                         3120 Southwest freeway 1st floor<br />
+                         2003 Houston TX 77098<br />
                         United States
                       </p>
                     </div>

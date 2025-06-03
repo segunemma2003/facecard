@@ -1,0 +1,99 @@
+name: Deploy React Frontend
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '23.1'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build React app
+      run: npm run build
+      env:
+        # Add your environment variables here
+        REACT_APP_API_URL: https://api.faceglobal-recognition.com
+
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT }}
+        script: |
+          # Set variables
+          FRONTEND_DIR="/var/www/faceglobal-recognition.com"
+          BACKUP_DIR="/var/www/faceglobal-recognition.com.backup"
+          
+          # Create backup of current frontend
+          if [ -d "$FRONTEND_DIR" ]; then
+            sudo rm -rf $BACKUP_DIR
+            sudo cp -r $FRONTEND_DIR $BACKUP_DIR
+            echo "✅ Backup created"
+          fi
+          
+          # Create frontend directory if it doesn't exist
+          sudo mkdir -p $FRONTEND_DIR
+          sudo chown -R faceglobal:www-data $FRONTEND_DIR
+
+    - name: Upload build files
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT }}
+        source: "build/*"
+        target: "/tmp/react-build"
+        strip_components: 1
+
+    - name: Move files and set permissions
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT }}
+        script: |
+          # Move files from temp to web directory
+          sudo rm -rf /var/www/faceglobal-recognition.com/*
+          sudo mv /tmp/react-build/* /var/www/faceglobal-recognition.com/
+          sudo rm -rf /tmp/react-build
+          
+          # Set proper permissions
+          sudo chown -R www-data:www-data /var/www/faceglobal-recognition.com
+          sudo chmod -R 755 /var/www/faceglobal-recognition.com
+          
+          # Test nginx configuration
+          sudo nginx -t
+          
+          # Reload nginx
+          sudo systemctl reload nginx
+          
+          echo "🎉 React frontend deployed successfully!"
+          echo "✅ Available at: https://faceglobal-recognition.com"
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "✅ Frontend deployment successful to https://faceglobal-recognition.com"
+        else
+          echo "❌ Frontend deployment failed"
+        fi

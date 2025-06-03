@@ -85,8 +85,8 @@ const Footer = () => {
                 </div>
                 <span className="text-face-white/90 leading-relaxed font-manrope">
                   Global Headquarters<br />
-                  123 Recognition Avenue<br />
-                  New York, NY 10001
+                     3120 Southwest freeway 1st floor<br />
+                         2003 Houston TX 77098<br />
                 </span>
               </div>
               <div className="flex items-center space-x-4">

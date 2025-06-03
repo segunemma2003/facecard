@@ -536,10 +536,10 @@ const Registration = () => {
                       <div>
                         <h4 className="font-bold text-lg text-face-grey">Location</h4>
                         <p className="text-gray-600">
-                          Grand Ballroom<br />
-                          The Prestigious Hotel<br />
-                          123 5th Avenue<br />
-                          New York, NY 10001
+                         
+                          3120 Southwest freeway 1st floor<br />
+                         2003 Houston TX 77098<br />
+                        
                         </p>
                       </div>
                     </div>
