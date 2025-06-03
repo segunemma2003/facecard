@@ -1,9 +1,7 @@
-name: Deploy React Frontend
+name: Deploy React Frontend (Rollup Fix)
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
     branches: [ main, master ]
 
 jobs:
@@ -20,13 +18,23 @@ jobs:
         node-version: '23.1'
         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+    - name: Fix Rollup dependency issue
+      run: |
+        # Clear npm cache
+        npm cache clean --force
+        
+        # Remove package-lock and node_modules
+        rm -rf package-lock.json node_modules
+        
+        # Install dependencies
+        npm install
+        
+        # Force install the missing Rollup platform package
+        npm install @rollup/rollup-linux-x64-gnu --save-dev
 
     - name: Build React app
       run: npm run build
       env:
-        # Add your environment variables here
         REACT_APP_API_URL: https://api.faceglobal-recognition.com
 
     - name: Deploy to VPS
@@ -37,18 +45,15 @@ jobs:
         key: ${{ secrets.VPS_SSH_KEY }}
         port: ${{ secrets.VPS_PORT }}
         script: |
-          # Set variables
           FRONTEND_DIR="/var/www/faceglobal-recognition.com"
           BACKUP_DIR="/var/www/faceglobal-recognition.com.backup"
           
-          # Create backup of current frontend
           if [ -d "$FRONTEND_DIR" ]; then
             sudo rm -rf $BACKUP_DIR
             sudo cp -r $FRONTEND_DIR $BACKUP_DIR
             echo "✅ Backup created"
           fi
           
-          # Create frontend directory if it doesn't exist
           sudo mkdir -p $FRONTEND_DIR
           sudo chown -R faceglobal:www-data $FRONTEND_DIR
 
@@ -71,20 +76,14 @@ jobs:
         key: ${{ secrets.VPS_SSH_KEY }}
         port: ${{ secrets.VPS_PORT }}
         script: |
-          # Move files from temp to web directory
           sudo rm -rf /var/www/faceglobal-recognition.com/*
           sudo mv /tmp/react-build/* /var/www/faceglobal-recognition.com/
           sudo rm -rf /tmp/react-build
           
-          # Set proper permissions
           sudo chown -R www-data:www-data /var/www/faceglobal-recognition.com
           sudo chmod -R 755 /var/www/faceglobal-recognition.com
           
-          # Test nginx configuration
-          sudo nginx -t
-          
-          # Reload nginx
-          sudo systemctl reload nginx
+          sudo nginx -t && sudo systemctl reload nginx
           
           echo "🎉 React frontend deployed successfully!"
           echo "✅ Available at: https://faceglobal-recognition.com"
