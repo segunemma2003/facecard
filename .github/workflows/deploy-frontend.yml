@@ -35,7 +35,7 @@ jobs:
         username: ${{ secrets.VPS_USERNAME }}
         password: ${{ secrets.VPS_PASSWORD }}  # Use password instead of key
         port: ${{ secrets.VPS_PORT }}
-        timeout: 60s
+        timeout: 120s
         command_timeout: 300s
         script: |
           FRONTEND_DIR="/var/www/faceglobal-recognition.com"
