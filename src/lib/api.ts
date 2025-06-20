@@ -10,19 +10,21 @@ class ApiClient {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
-    const config: RequestInit = {
-      // Add credentials to include cookies/auth headers
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        // Add Origin header explicitly
-        'Origin': window.location.origin,
-        ...options?.headers,
-      },
-      ...options,
-    };
+   const config: RequestInit = {
+    headers: {
+      'Accept': 'application/json',
+      ...options?.headers,
+    },
+    ...options,
+  };
 
+  // Only add Content-Type for requests with body
+  if (options?.body) {
+    config.headers = {
+      ...config.headers,
+      'Content-Type': 'application/json',
+    };
+  }
     try {
       console.log('Making request to:', url); // Debug log
       console.log('Request config:', config); // Debug log
@@ -52,6 +54,39 @@ class ApiClient {
       throw error;
     }
   }
+
+
+
+  //Homepage content
+
+   async getAllPageContent(params?: {
+    page?: string;
+    section?: string;
+  }): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page);
+    if (params?.section) queryParams.append('section', params.section);
+    
+    const query = queryParams.toString();
+    return this.request(`/content${query ? `?${query}` : ''}`);
+  }
+
+  async getPageContent(page: string): Promise<ApiResponse<any>> {
+    return this.request(`/content/${page}`);
+  }
+
+  async getPageSectionContent(page: string, section: string): Promise<ApiResponse<any>> {
+    return this.request(`/content/${page}/${section}`);
+  }
+
+  async getSpecificContent(page: string, section: string, key: string): Promise<ApiResponse<any>> {
+    return this.request(`/content/${page}/${section}/${key}`);
+  }
+
+  async getAvailablePages(): Promise<ApiResponse<any>> {
+    return this.request('/content/pages');
+  }
+
 
   // Categories API
   async getCategories(params?: {
@@ -352,6 +387,11 @@ export interface GalleryImage {
   id: number;
   image_url: string;
   caption: string | null;
+}
+
+
+export interface Content {
+
 }
 
 export interface RegistrationData {
