@@ -1,5 +1,3 @@
-// components/home/AboutSection.tsx - Updated to use page content API
-
 import { CheckCircle, Globe, Users, Trophy, Calendar, Handshake, Loader2 } from 'lucide-react';
 import { usePageContent } from '@/hooks/usePageContent';
 import { ContentRenderer, extractContent, getPlainText } from '@/lib/contentUtils';
@@ -14,7 +12,7 @@ const AboutSection = () => {
   
   // Extract content with fallbacks
   const title = extractContent(aboutData, 'title', 'About FACE Awards');
-  const content = aboutData.content?.content || 'The Outstanding FACE Global Recognition Awards is an international platform created by Mr. Thompson Alade, a seasoned and professional leadership and tech management expert, to celebrate and honor individuals, organizations, and institutions making remarkable contributions across diverse sectors worldwide.';
+  const content = extractContent(aboutData, 'content', 'The Outstanding FACE Global Recognition Awards is an international platform created by Mr. Thompson Alade...');
   const contentType = aboutData.content?.type || 'html';
   
   // Parse FACE meanings from API or use fallbacks
@@ -24,13 +22,13 @@ const AboutSection = () => {
     { letter: 'C', word: 'Courage', description: 'The boldness to innovate and overcome challenges' },
     { letter: 'E', word: 'Excellence', description: 'The pursuit of the highest standards in every endeavor' }
   ];
-  
+
   // Parse approach items from API or use fallbacks
-  const approachTitle = extractContent(approachData, 'approach_title', 'Our Approach');
+   const approachTitle = extractContent(approachData, 'approach_title', 'Our Approach');
   const approachItems = approachData.approach_items?.content || [
     {
       title: 'Global Reach, Local Impact',
-      description: 'Recognizing excellence worldwide, from local heroes to global brands making waves across continents',
+      description: 'Recognizing excellence worldwide...',
       icon: 'globe'
     },
     {
@@ -68,7 +66,7 @@ const AboutSection = () => {
   };
 
   // Loading state
-  if (aboutLoading || approachLoading) {
+ if (aboutLoading || approachLoading) {
     return (
       <section className="face-section bg-face-white" id="about">
         <div className="container mx-auto px-4">
@@ -101,11 +99,10 @@ const AboutSection = () => {
             <img 
               src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
               alt="FACE Awards Logo" 
-              className="h-10 w-auto animate-pulse"
+              className="h-10 w-auto"
             />
           </div>
           
-          {/* Dynamic title with FACE highlighting */}
           <h2 className="text-3xl md:text-4xl font-clash font-bold mb-6 text-face-grey">
             {title.includes('FACE') ? (
               <>
@@ -118,20 +115,19 @@ const AboutSection = () => {
             )}
           </h2>
           
-          {/* Dynamic content with proper rendering */}
           <ContentRenderer
             content={content}
             type={contentType}
             className="text-lg text-face-grey/80 font-manrope"
-            fallback="The Outstanding FACE Global Recognition Awards is an international platform created by Mr. Thompson Alade, a seasoned and professional leadership and tech management expert, to celebrate and honor individuals, organizations, and institutions making remarkable contributions across diverse sectors worldwide."
           />
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
-            {/* FACE Meanings - Dynamic */}
             <div className="face-card p-6 shadow-sm hover:shadow-md transition-shadow border border-face-sky-blue/20">
-              <h3 className="text-xl font-clash font-semibold mb-3 text-face-sky-blue">FACE Represents</h3>
+              <h3 className="text-xl font-clash font-semibold mb-3 text-face-sky-blue">
+                {extractContent(aboutData, 'face_sub_title', 'FACE Represents')}
+              </h3>
               <div className="space-y-4 ml-2">
                 {faceMeanings.map((item: any, index: number) => (
                   <div key={index} className="flex gap-3">
@@ -147,7 +143,6 @@ const AboutSection = () => {
               </div>
             </div>
 
-            {/* Our Approach - Dynamic */}
             <div className="face-card p-6 shadow-sm hover:shadow-md transition-shadow border border-face-sky-blue/20">
               <h3 className="text-xl font-clash font-semibold mb-3 text-face-grey">{approachTitle}</h3>
               <ul className="space-y-3 ml-2">
@@ -168,20 +163,20 @@ const AboutSection = () => {
             </div>
           </div>
 
-          {/* Image section remains static for now */}
           <div className="relative z-10 rounded-lg overflow-hidden shadow-xl animate-scale-up">
             <img 
-              src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1470&auto=format&fit=crop" 
-              alt="FACE Awards Ceremony" 
+              src={extractContent(aboutData, 'hero_image', 'https://images.unsplash.com/photo-1540575467063-178a50c2df87')} 
+              alt={JSON.parse(aboutData.hero_image?.meta || '{}').alt || 'FACE Awards Ceremony'} 
               className="w-full h-full object-cover"
               onError={(e) => {
-                // Fallback image if the main image fails to load
-                e.currentTarget.src = "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1470&auto=format&fit=crop";
+                e.currentTarget.src = extractContent(aboutData, 'hero_image_fallback', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622');
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
               <div className="p-6">
-                <p className="text-white text-lg font-serif">Celebrating excellence across borders and industries</p>
+                <p className="text-white text-lg font-serif">
+                  {extractContent(aboutData, 'image_caption', 'Celebrating excellence across borders and industries')}
+                </p>
               </div>
             </div>
           </div>

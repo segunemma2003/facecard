@@ -4,15 +4,19 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Award, Filter, PieChart, Calendar, Users, Trophy, Star, Clock, Vote, TrendingUp, Globe, Sparkles, ChevronRight, Play, Heart, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useCategories, useNominees, useVote, useUserVotes, useCategoryStats } from '@/hooks/useApi';
+import { apiClient } from '@/lib/api';
+import { extractContent, useProcessedContent } from '@/lib/contentUtils';
 import { toast } from '@/components/ui/use-toast';
 
 const Nominees = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [animateStats, setAnimateStats] = useState(false);
-  const [votingEndDate] = useState(new Date(new Date().setDate(new Date().getDate() + 30)));
+  const [pageContent, setPageContent] = useState<any>(null);
+  const [contentLoading, setContentLoading] = useState(true);
+  const [votingEndDate, setVotingEndDate] = useState(new Date(new Date().setDate(new Date().getDate() + 30)));
   
-  // API Hooks
+  // API Hooks (keep existing)
   const { data: categoriesResponse, isLoading: categoriesLoading, error: categoriesError } = useCategories();
   const { data: nomineesResponse, isLoading: nomineesLoading, error: nomineesError } = useNominees({
     category: selectedCategory === 'all' ? undefined : selectedCategory,
@@ -28,6 +32,38 @@ const Nominees = () => {
   const userVotes = userVotesResponse?.data || [];
   const stats = statsResponse?.data;
   
+  // Process content for easier access
+  const processedContent = useProcessedContent(pageContent);
+  
+  // Load page content
+  useEffect(() => {
+    const loadPageContent = async () => {
+      try {
+        setContentLoading(true);
+        const response = await apiClient.getPageContent('nominees');
+        if (response.success) {
+          setPageContent(response.data);
+          
+          // Set voting end date from content if available
+          const votingOffsetDays = extractContent(
+            response.data?.countdown_timer, 
+            'voting_end_date_offset_days', 
+            '30'
+          );
+          const offsetDays = parseInt(votingOffsetDays) || 30;
+          setVotingEndDate(new Date(new Date().setDate(new Date().getDate() + offsetDays)));
+        }
+      } catch (error) {
+        console.error('Failed to load page content:', error);
+        // Continue with default content if API fails
+      } finally {
+        setContentLoading(false);
+      }
+    };
+
+    loadPageContent();
+  }, []);
+  
   // Get voted nominee IDs
   const votedNomineeIds = new Set(
     userVotes.flatMap(categoryVote => categoryVote.voted_nominees)
@@ -40,9 +76,20 @@ const Nominees = () => {
   
   const handleVote = async (nomineeId: number) => {
     if (votedNomineeIds.has(nomineeId)) {
+      const alreadyVotedTitle = extractContent(
+        pageContent?.voting_actions, 
+        'already_voted_title', 
+        'Already voted'
+      );
+      const alreadyVotedMessage = extractContent(
+        pageContent?.voting_actions, 
+        'already_voted_message', 
+        'You have already voted for this nominee.'
+      );
+      
       toast({
-        title: "Already voted",
-        description: "You have already voted for this nominee.",
+        title: alreadyVotedTitle,
+        description: alreadyVotedMessage,
         variant: "destructive"
       });
       return;
@@ -50,14 +97,36 @@ const Nominees = () => {
     
     try {
       await voteMutation.mutateAsync({ nomineeId });
+      
+      const successTitle = extractContent(
+        pageContent?.voting_actions, 
+        'vote_success_title', 
+        'Vote recorded!'
+      );
+      const successMessage = extractContent(
+        pageContent?.voting_actions, 
+        'vote_success_message', 
+        'Thank you for your vote. It has been successfully recorded.'
+      );
+      
       toast({
-        title: "Vote recorded!",
-        description: "Thank you for your vote. It has been successfully recorded.",
+        title: successTitle,
+        description: successMessage,
       });
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || "Failed to record vote. Please try again.";
+      const errorMessage = error?.response?.data?.message || extractContent(
+        pageContent?.voting_actions, 
+        'vote_failed_message', 
+        'Failed to record vote. Please try again.'
+      );
+      const failedTitle = extractContent(
+        pageContent?.voting_actions, 
+        'vote_failed_title', 
+        'Vote failed'
+      );
+      
       toast({
-        title: "Vote failed",
+        title: failedTitle,
         description: errorMessage,
         variant: "destructive"
       });
@@ -91,6 +160,13 @@ const Nominees = () => {
   const NomineeCard = ({ nominee, index }: { nominee: any; index: number }) => {
     const hasVoted = votedNomineeIds.has(nominee.id);
     const isVoting = voteMutation.isPending;
+    
+    // Get button texts from content
+    const voteButtonText = extractContent(pageContent?.voting_actions, 'vote_button_text', 'Vote Now');
+    const votedButtonText = extractContent(pageContent?.voting_actions, 'voted_button_text', 'Voted');
+    const votingText = extractContent(pageContent?.voting_actions, 'voting_text', 'Voting...');
+    const votingClosedText = extractContent(pageContent?.voting_actions, 'voting_closed_text', 'Voting Closed');
+    const votesSuffix = extractContent(pageContent?.stats_labels, 'votes_suffix', 'votes');
     
     return (
       <div 
@@ -175,7 +251,7 @@ const Nominees = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2 text-gray-500">
               <Vote className="h-4 w-4" />
-              <span className="text-sm font-medium">{nominee.votes.toLocaleString()} votes</span>
+              <span className="text-sm font-medium">{nominee.votes.toLocaleString()} {votesSuffix}</span>
             </div>
             <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
               <div 
@@ -204,20 +280,20 @@ const Nominees = () => {
               {isVoting ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Voting...
+                  {votingText}
                 </>
               ) : hasVoted ? (
                 <>
                   <CheckCircle className="h-5 w-5" />
-                  Voted
+                  {votedButtonText}
                 </>
               ) : nominee.can_vote ? (
                 <>
-                  Vote Now
+                  {voteButtonText}
                   <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </>
               ) : (
-                'Voting Closed'
+                votingClosedText
               )}
             </span>
           </button>
@@ -227,14 +303,20 @@ const Nominees = () => {
   };
 
   // Loading state
-  if (categoriesLoading || nomineesLoading) {
+  if (categoriesLoading || nomineesLoading || contentLoading) {
+    const loadingText = extractContent(
+      pageContent?.loading_states, 
+      'loading_nominees_text', 
+      'Loading nominees...'
+    );
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-face-sky-blue mx-auto mb-4" />
-            <p className="text-xl text-gray-600">Loading nominees...</p>
+            <p className="text-xl text-gray-600">{loadingText}</p>
           </div>
         </div>
         <Footer />
@@ -244,18 +326,29 @@ const Nominees = () => {
 
   // Error state
   if (categoriesError || nomineesError) {
+    const failedToLoadText = extractContent(
+      pageContent?.loading_states, 
+      'failed_to_load_text', 
+      'Failed to load nominees'
+    );
+    const tryAgainText = extractContent(
+      pageContent?.loading_states, 
+      'try_again_button_text', 
+      'Try Again'
+    );
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-xl text-gray-600 mb-4">Failed to load nominees</p>
+            <p className="text-xl text-gray-600 mb-4">{failedToLoadText}</p>
             <button 
               onClick={() => window.location.reload()} 
               className="bg-face-sky-blue text-white px-6 py-2 rounded-lg hover:bg-face-sky-blue-dark transition-colors"
             >
-              Try Again
+              {tryAgainText}
             </button>
           </div>
         </div>
@@ -263,6 +356,33 @@ const Nominees = () => {
       </div>
     );
   }
+
+  // Extract content with fallbacks
+  const heroTitle = extractContent(pageContent?.hero, 'main_title', 'Current Nominees');
+  const heroSubtitle = extractContent(pageContent?.hero, 'main_subtitle', 'Vote for outstanding individuals and organizations making remarkable contributions across various sectors worldwide');
+  const heroBackgroundImage = extractContent(pageContent?.hero, 'background_image', 'https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop');
+  
+  const countdownTitle = extractContent(pageContent?.countdown_timer, 'title', 'Voting Ends In');
+  const countdownSubtitle = extractContent(pageContent?.countdown_timer, 'subtitle', 'Make your voice heard before time runs out!');
+  
+  const filterTitle = extractContent(pageContent?.category_filter, 'title', 'Filter by Category');
+  const filterSubtitle = extractContent(pageContent?.category_filter, 'subtitle', 'Explore nominees across different categories of excellence');
+  const allCategoriesText = extractContent(pageContent?.category_filter, 'all_categories_text', 'All Categories');
+  
+  const nomineesGridTitle = pageContent?.nominees_grid?.title?.content || 'Exceptional <span class="text-face-sky-blue">Nominees</span>';
+  const nomineesGridSubtitle = extractContent(pageContent?.nominees_grid, 'subtitle', 'Discover remarkable individuals and organizations competing for recognition');
+  const emptyStateTitle = extractContent(pageContent?.nominees_grid, 'empty_state_title', 'No Nominees Found');
+  const emptyStateMessage = extractContent(pageContent?.nominees_grid, 'empty_state_message', 'No nominees found for the selected category. Try selecting a different category.');
+  
+  const ctaTitle = extractContent(pageContent?.call_to_action, 'title', 'Your Vote Matters');
+  const ctaSubtitle = extractContent(pageContent?.call_to_action, 'subtitle', 'Join thousands of voters worldwide in recognizing excellence and making a difference');
+  const ctaPrimaryButton = extractContent(pageContent?.call_to_action, 'primary_button_text', 'Watch Nominee Stories');
+  const ctaSecondaryButton = extractContent(pageContent?.call_to_action, 'secondary_button_text', 'Learn About FACE Awards');
+  
+  // Stats labels
+  const activeNomineesLabel = extractContent(pageContent?.stats_labels, 'active_nominees_label', 'Active Nominees');
+  const categoriesOpenLabel = extractContent(pageContent?.stats_labels, 'categories_open_label', 'Categories Open');
+  const totalVotesLabel = extractContent(pageContent?.stats_labels, 'total_votes_label', 'Total Votes');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-face-sky-blue/5">
@@ -318,7 +438,7 @@ const Nominees = () => {
         {/* Background with multiple layers */}
         <div className="absolute inset-0">
           <img 
-            src="https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
+            src={heroBackgroundImage}
             alt="FACE Awards nominees background"
             className="w-full h-full object-cover"
           />
@@ -360,12 +480,18 @@ const Nominees = () => {
             
             {/* Main heading */}
             <h1 className="text-6xl md:text-8xl font-serif font-bold mb-8 text-white leading-tight">
-              Current <span className="bg-gradient-to-r from-white via-face-sky-blue-light to-white bg-clip-text text-transparent animate-pulse">Nominees</span>
+              {heroTitle.split(' ').map((word, index) => 
+                index === 1 ? (
+                  <span key={index} className="bg-gradient-to-r from-white via-face-sky-blue-light to-white bg-clip-text text-transparent animate-pulse">{word} </span>
+                ) : (
+                  <span key={index}>{word} </span>
+                )
+              )}
             </h1>
             
             {/* Subtitle */}
             <p className="text-2xl md:text-3xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed font-medium">
-              Vote for outstanding individuals and organizations making remarkable contributions across various sectors worldwide
+              {heroSubtitle}
             </p>
             
             {/* Floating stats */}
@@ -374,21 +500,21 @@ const Nominees = () => {
                 <Users className="h-7 w-7 text-white" />
                 <div className="text-left">
                   <div className="font-bold text-xl">{stats?.total_nominees || nominees.length}</div>
-                  <div className="text-sm opacity-90">Active Nominees</div>
+                  <div className="text-sm opacity-90">{activeNomineesLabel}</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-white/40 hover:bg-white/40 transition-all duration-300 transform hover:scale-105">
                 <Trophy className="h-7 w-7 text-white" />
                 <div className="text-left">
                   <div className="font-bold text-xl">{stats?.active_voting_categories || categories.length}</div>
-                  <div className="text-sm opacity-90">Categories Open</div>
+                  <div className="text-sm opacity-90">{categoriesOpenLabel}</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-white/40 hover:bg-white/40 transition-all duration-300 transform hover:scale-105">
                 <Vote className="h-7 w-7 text-white" />
                 <div className="text-left">
                   <div className="font-bold text-xl">{stats?.total_votes?.toLocaleString() || '0'}</div>
-                  <div className="text-sm opacity-90">Total Votes</div>
+                  <div className="text-sm opacity-90">{totalVotesLabel}</div>
                 </div>
               </div>
             </div>
@@ -419,37 +545,39 @@ const Nominees = () => {
       </section>
       
       {/* Countdown Timer */}
-      <section className="py-20 bg-gradient-to-r from-white via-face-sky-blue/5 to-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-serif font-bold text-face-grey mb-4">
-                <Clock className="inline h-10 w-10 text-face-sky-blue mr-3" />
-                Voting Ends In
-              </h2>
-              <p className="text-xl text-gray-600">Make your voice heard before time runs out!</p>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-              {[
-                { label: 'Days', value: timeLeft.days },
-                { label: 'Hours', value: timeLeft.hours },
-                { label: 'Minutes', value: timeLeft.minutes },
-                { label: 'Seconds', value: timeLeft.seconds }
-              ].map((item, index) => (
-                <div key={item.label} className="text-center">
-                  <div className="bg-gradient-to-br from-face-sky-blue to-face-sky-blue-dark text-white rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-white">
-                    <div className="text-4xl md:text-5xl font-bold mb-2 font-mono">
-                      {String(item.value).padStart(2, '0')}
+      {pageContent?.countdown_timer?.enabled?.content === 'true' && (
+        <section className="py-20 bg-gradient-to-r from-white via-face-sky-blue/5 to-white">
+          <div className="container mx-auto px-4">
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-serif font-bold text-face-grey mb-4">
+                  <Clock className="inline h-10 w-10 text-face-sky-blue mr-3" />
+                  {countdownTitle}
+                </h2>
+                <p className="text-xl text-gray-600">{countdownSubtitle}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+                {[
+                  { label: 'Days', value: timeLeft.days },
+                  { label: 'Hours', value: timeLeft.hours },
+                  { label: 'Minutes', value: timeLeft.minutes },
+                  { label: 'Seconds', value: timeLeft.seconds }
+                ].map((item, index) => (
+                  <div key={item.label} className="text-center">
+                    <div className="bg-gradient-to-br from-face-sky-blue to-face-sky-blue-dark text-white rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-white">
+                      <div className="text-4xl md:text-5xl font-bold mb-2 font-mono">
+                        {String(item.value).padStart(2, '0')}
+                      </div>
+                      <div className="text-sm uppercase tracking-wider opacity-90">{item.label}</div>
                     </div>
-                    <div className="text-sm uppercase tracking-wider opacity-90">{item.label}</div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
       
       {/* Category Navigation */}
       <section className="py-20 bg-white">
@@ -458,9 +586,9 @@ const Nominees = () => {
             <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-face-grey mb-4">
                 <Filter className="inline h-10 w-10 text-face-sky-blue mr-3" />
-                Filter by Category
+                {filterTitle}
               </h2>
-              <p className="text-xl text-gray-600">Explore nominees across different categories of excellence</p>
+              <p className="text-xl text-gray-600">{filterSubtitle}</p>
             </div>
             
             <div className="flex justify-center mb-16">
@@ -473,7 +601,7 @@ const Nominees = () => {
                       : 'text-gray-600 hover:bg-face-sky-blue/10 hover:text-face-sky-blue'
                   }`}
                 >
-                  All Categories
+                  {allCategoriesText}
                 </button>
                 {categories.map((category) => (
                   <button
@@ -499,11 +627,12 @@ const Nominees = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-serif font-bold text-face-grey mb-4">
-                Exceptional <span className="text-face-sky-blue">Nominees</span>
-              </h2>
+              <h2 
+                className="text-4xl font-serif font-bold text-face-grey mb-4"
+                dangerouslySetInnerHTML={{ __html: nomineesGridTitle }}
+              />
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Discover remarkable individuals and organizations competing for recognition
+                {nomineesGridSubtitle}
               </p>
             </div>
             
@@ -517,9 +646,9 @@ const Nominees = () => {
               <div className="text-center py-20">
                 <div className="bg-white rounded-3xl p-12 shadow-xl border border-face-sky-blue/20 max-w-md mx-auto">
                   <Sparkles className="h-16 w-16 text-gray-400 mx-auto mb-6" />
-                  <h3 className="text-2xl font-bold text-gray-700 mb-4">No Nominees Found</h3>
+                  <h3 className="text-2xl font-bold text-gray-700 mb-4">{emptyStateTitle}</h3>
                   <p className="text-gray-500 text-lg">
-                    No nominees found for the selected category. Try selecting a different category.
+                    {emptyStateMessage}
                   </p>
                 </div>
               </div>
@@ -534,19 +663,19 @@ const Nominees = () => {
           <div className="max-w-4xl mx-auto">
             <Globe className="h-16 w-16 text-white mx-auto mb-8 animate-float" />
             <h2 className="text-5xl font-serif font-bold mb-8 text-white">
-              Your Vote Matters
+              {ctaTitle}
             </h2>
             <p className="text-2xl text-white/90 mb-12 leading-relaxed">
-              Join thousands of voters worldwide in recognizing excellence and making a difference
+              {ctaSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <button className="bg-white text-face-sky-blue hover:bg-face-sky-blue hover:text-white border-4 border-white hover:border-white shadow-2xl text-xl font-bold py-5 px-12 rounded-2xl transform hover:scale-105 transition-all duration-300">
                 <Play className="inline h-6 w-6 mr-3" />
-                Watch Nominee Stories
+                {ctaPrimaryButton}
               </button>
               <button className="border-4 border-white bg-transparent text-white hover:bg-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-5 px-12 rounded-2xl transform hover:scale-105 transition-all duration-300">
                 <Award className="inline h-6 w-6 mr-3" />
-                Learn About FACE Awards
+                {ctaSecondaryButton}
               </button>
             </div>
           </div>

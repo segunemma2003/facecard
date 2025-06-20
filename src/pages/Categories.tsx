@@ -1,11 +1,14 @@
+// src/pages/Categories.tsx - Updated with Content API integration
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Award, Trophy, Globe, Star, Clock, Users, ChevronRight, Sparkles, Target, TrendingUp, Calendar, MapPin, Heart, Eye, Vote, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useCategories, useVote, useUserVotes, useCategoryStats } from '@/hooks/useApi';
+import { extractContent } from '@/lib/contentUtils';
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
+import { usePageContent } from '@/hooks/usePageContent';
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -14,7 +17,7 @@ const Categories = () => {
   const [animateStats, setAnimateStats] = useState(false);
   const [showVoteSuccess, setShowVoteSuccess] = useState<number | null>(null);
   
-  // API Hooks
+  // API Hooks (keep existing)
   const { data: categoriesResponse, isLoading, error } = useCategories({
     region: activeTab === "all" ? undefined : activeTab,
     voting_only: false
@@ -23,9 +26,13 @@ const Categories = () => {
   const { data: statsResponse } = useCategoryStats();
   const voteMutation = useVote();
   
+  // Content API Hook
+  const { data: contentResponse, isLoading: contentLoading, error: contentError } = usePageContent('categories');
+  
   const categories = categoriesResponse?.data || [];
   const userVotes = userVotesResponse?.data || [];
   const stats = statsResponse?.data;
+  const pageContent = contentResponse?.data;
   
   // Get voted category IDs
   const votedCategoryIds = new Set(
@@ -53,9 +60,20 @@ const Categories = () => {
 
   const handleVote = async (categoryId: number) => {
     if (votedCategoryIds.has(categoryId)) {
+      const alreadyVotedTitle = extractContent(
+        pageContent?.voting_messages, 
+        'already_voted_title', 
+        'Already voted'
+      );
+      const alreadyVotedMessage = extractContent(
+        pageContent?.voting_messages, 
+        'already_voted_message', 
+        'You have already voted in this category.'
+      );
+      
       toast({
-        title: "Already voted",
-        description: "You have already voted in this category.",
+        title: alreadyVotedTitle,
+        description: alreadyVotedMessage,
         variant: "destructive"
       });
       return;
@@ -77,6 +95,19 @@ const Categories = () => {
     const isActive = category.voting_open;
     const isVoting = voteMutation.isPending;
     
+    // Get button and label texts from content
+    const votingOpenText = extractContent(pageContent?.category_card_labels, 'voting_open_text', 'Voting Open');
+    const comingSoonText = extractContent(pageContent?.category_card_labels, 'coming_soon_text', 'Coming Soon');
+    const voteNowText = extractContent(pageContent?.category_card_labels, 'vote_now_text', 'Vote Now');
+    const viewNomineesText = extractContent(pageContent?.category_card_labels, 'view_nominees_text', 'View Nominees');
+    const nomineesLabel = extractContent(pageContent?.category_card_labels, 'nominees_label', 'Nominees');
+    const votesLabel = extractContent(pageContent?.category_card_labels, 'votes_label', 'Votes');
+    const statusLabel = extractContent(pageContent?.category_card_labels, 'status_label', 'Status:');
+    const endsInLabel = extractContent(pageContent?.category_card_labels, 'ends_in_label', 'Ends in:');
+    const daySuffix = extractContent(pageContent?.category_card_labels, 'days_suffix', 'day');
+    const daysSuffix = extractContent(pageContent?.category_card_labels, 'days_suffix_plural', 'days');
+    const voteSuccessMessage = extractContent(pageContent?.voting_messages, 'vote_success_message', 'Vote recorded!');
+    
     return (
       <div 
         className="group relative bg-face-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border border-face-sky-blue/10 overflow-hidden"
@@ -90,7 +121,7 @@ const Categories = () => {
         {showingSuccess && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-green-500 text-face-white px-4 py-2 rounded-full shadow-lg animate-bounce">
             <CheckCircle className="inline h-4 w-4 mr-2" />
-            Vote recorded!
+            {voteSuccessMessage}
           </div>
         )}
 
@@ -113,7 +144,7 @@ const Categories = () => {
                 ? 'bg-green-500 text-face-white' 
                 : 'bg-face-gold text-face-grey'
             }`}>
-              {isActive ? 'Voting Open' : 'Coming Soon'}
+              {isActive ? votingOpenText : comingSoonText}
             </div>
           </div>
 
@@ -158,12 +189,12 @@ const Categories = () => {
                 {userHasVoted ? (
                   <>
                     <CheckCircle className="inline h-5 w-5 mr-2" />
-                    View Nominees
+                    {viewNomineesText}
                   </>
                 ) : (
                   <>
                     <Vote className="inline h-5 w-5 mr-2" />
-                    Vote Now
+                    {voteNowText}
                   </>
                 )}
               </Button>
@@ -173,7 +204,7 @@ const Categories = () => {
                 className="bg-face-grey/60 text-face-white cursor-not-allowed px-8 py-4 rounded-2xl font-bold text-lg font-manrope"
               >
                 <Clock className="inline h-5 w-5 mr-2" />
-                Coming Soon
+                {comingSoonText}
               </Button>
             )}
           </div>
@@ -194,28 +225,28 @@ const Categories = () => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-face-sky-blue/5 rounded-xl p-4 text-center border border-face-sky-blue/10">
               <div className="text-2xl font-bold text-face-sky-blue font-clash">{category.nominees_count || 0}</div>
-              <div className="text-sm text-face-grey/60 font-manrope">Nominees</div>
+              <div className="text-sm text-face-grey/60 font-manrope">{nomineesLabel}</div>
             </div>
             <div className="bg-face-sky-blue/5 rounded-xl p-4 text-center border border-face-sky-blue/10">
               <div className="text-2xl font-bold text-face-sky-blue font-clash">{category.total_votes?.toLocaleString() || '0'}</div>
-              <div className="text-sm text-face-grey/60 font-manrope">Votes</div>
+              <div className="text-sm text-face-grey/60 font-manrope">{votesLabel}</div>
             </div>
           </div>
 
           {/* Impact and countdown */}
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-face-sky-blue/5 rounded-xl border border-face-sky-blue/10">
-              <span className="text-sm text-face-grey/60 font-manrope">Status:</span>
+              <span className="text-sm text-face-grey/60 font-manrope">{statusLabel}</span>
               <span className={`font-bold font-manrope ${isActive ? 'text-green-600' : 'text-face-gold'}`}>
-                {isActive ? 'Voting Open' : 'Coming Soon'}
+                {isActive ? votingOpenText : comingSoonText}
               </span>
             </div>
             
             {isActive && category.days_remaining !== undefined && (
               <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200">
-                <span className="text-sm text-face-grey/60 font-manrope">Ends in:</span>
+                <span className="text-sm text-face-grey/60 font-manrope">{endsInLabel}</span>
                 <span className="font-bold text-green-600 font-manrope">
-                  {category.days_remaining} day{category.days_remaining !== 1 ? 's' : ''}
+                  {category.days_remaining} {category.days_remaining !== 1 ? daysSuffix : daySuffix}
                 </span>
               </div>
             )}
@@ -230,7 +261,7 @@ const Categories = () => {
                 className="text-face-sky-blue hover:text-face-sky-blue-dark hover:bg-face-sky-blue/5 font-medium transition-colors font-manrope"
               >
                 <Eye className="inline h-4 w-4 mr-2" />
-                View Nominees
+                {viewNomineesText}
               </Button>
               <ChevronRight className="h-5 w-5 text-face-grey/40 group-hover:text-face-sky-blue group-hover:translate-x-1 transition-all duration-300" />
             </div>
@@ -241,14 +272,20 @@ const Categories = () => {
   };
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || contentLoading) {
+    const loadingText = extractContent(
+      pageContent?.loading_states, 
+      'loading_categories_text', 
+      'Loading categories...'
+    );
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-face-white via-face-sky-blue/5 to-face-sky-blue/10">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-face-sky-blue mx-auto mb-4" />
-            <p className="text-xl text-face-grey/60 font-manrope">Loading categories...</p>
+            <p className="text-xl text-face-grey/60 font-manrope">{loadingText}</p>
           </div>
         </div>
         <Footer />
@@ -256,20 +293,31 @@ const Categories = () => {
     );
   }
 
-  // Error state
+  // Error state - prioritize categories error over content error
   if (error) {
+    const failedToLoadText = extractContent(
+      pageContent?.loading_states, 
+      'failed_to_load_text', 
+      'Failed to load categories'
+    );
+    const tryAgainText = extractContent(
+      pageContent?.loading_states, 
+      'try_again_button_text', 
+      'Try Again'
+    );
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-face-white via-face-sky-blue/5 to-face-sky-blue/10">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-xl text-face-grey/60 mb-4 font-manrope">Failed to load categories</p>
+            <p className="text-xl text-face-grey/60 mb-4 font-manrope">{failedToLoadText}</p>
             <Button 
               onClick={() => window.location.reload()} 
               className="bg-face-sky-blue text-face-white px-6 py-2 rounded-lg hover:bg-face-sky-blue-dark transition-colors font-manrope"
             >
-              Try Again
+              {tryAgainText}
             </Button>
           </div>
         </div>
@@ -277,6 +325,44 @@ const Categories = () => {
       </div>
     );
   }
+
+  // Extract content with fallbacks
+  const heroTitle = pageContent?.hero?.find(item => item.key === 'main_title')?.content || 'Award <span class="bg-gradient-to-r from-face-white via-face-sky-blue-light to-face-white bg-clip-text text-transparent">Categories</span>';
+  const heroSubtitle = extractContent(pageContent?.hero, 'subtitle', 'Discover the diverse categories recognizing excellence across industries and borders. Vote for your favorites!');
+  const heroBackgroundImage = extractContent(pageContent?.hero, 'background_image', 'https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop');
+  const votingInfoMessage = pageContent?.hero?.find(item => item.key === 'voting_info_message')?.content || '<span class="font-bold">One vote per category.</span> We track IP addresses to ensure fair voting.';
+  
+  // Parse stats labels from JSON content
+  let statsLabels = { active_categories: 'Active Categories', total_nominees: 'Total Nominees', total_votes: 'Total Votes' };
+  try {
+    const statsLabelsContent = pageContent?.hero?.find(item => item.key === 'stats_labels')?.content;
+    if (statsLabelsContent) {
+      const parsed = JSON.parse(statsLabelsContent);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          if (item.key && item.label) {
+            statsLabels[item.key] = item.label;
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to parse stats labels:', error);
+  }
+  
+  const regionalNavTitle = extractContent(pageContent?.regional_navigation, 'title', 'Explore by Region');
+  const regionalNavSubtitle = extractContent(pageContent?.regional_navigation, 'subtitle', 'Categories span across continents, celebrating global excellence');
+  const allRegionsText = extractContent(pageContent?.regional_navigation, 'all_regions_text', 'All Regions');
+  
+  const categoriesGridTitle = pageContent?.categories_grid?.find(item => item.key === 'title')?.content || 'Categories of <span class="text-face-sky-blue">Excellence</span>';
+  const categoriesGridSubtitle = extractContent(pageContent?.categories_grid, 'subtitle', 'Each category represents a unique domain where exceptional achievements are recognized and celebrated');
+  const emptyStateTitle = extractContent(pageContent?.categories_grid, 'empty_state_title', 'No Categories Found');
+  const emptyStateMessage = extractContent(pageContent?.categories_grid, 'empty_state_message', 'No categories found for the selected region. Try selecting a different region.');
+  
+  const ctaTitle = extractContent(pageContent?.call_to_action, 'title', 'Ready to Make Your Mark?');
+  const ctaSubtitle = extractContent(pageContent?.call_to_action, 'subtitle', 'Join the community of excellence and help recognize outstanding achievements worldwide');
+  const ctaPrimaryButton = extractContent(pageContent?.call_to_action, 'primary_button_text', 'Start Voting Now');
+  const ctaSecondaryButton = extractContent(pageContent?.call_to_action, 'secondary_button_text', 'Register for Event');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-face-white via-face-sky-blue/5 to-face-sky-blue/10">
@@ -332,7 +418,7 @@ const Categories = () => {
         {/* Background with multiple layers */}
         <div className="absolute inset-0">
           <img 
-            src="https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
+            src={heroBackgroundImage}
             alt="FACE Awards categories background"
             className="w-full h-full object-cover"
           />
@@ -375,22 +461,24 @@ const Categories = () => {
             </div>
             
             {/* Main heading */}
-            <h1 className="text-6xl md:text-8xl font-clash font-bold mb-8 text-face-white leading-tight">
-              Award <span className="bg-gradient-to-r from-face-white via-face-sky-blue-light to-face-white bg-clip-text text-transparent">Categories</span>
-            </h1>
+            <h1 
+              className="text-6xl md:text-8xl font-clash font-bold mb-8 text-face-white leading-tight"
+              dangerouslySetInnerHTML={{ __html: heroTitle }}
+            />
             
             {/* Subtitle */}
             <p className="text-2xl md:text-3xl text-face-white/90 mb-12 max-w-4xl mx-auto leading-relaxed font-medium font-manrope">
-              Discover the diverse categories recognizing excellence across industries and borders. Vote for your favorites!
+              {heroSubtitle}
             </p>
             
             {/* Voting info */}
             <div className="bg-face-white/20 backdrop-blur-sm border border-face-white/30 rounded-2xl p-6 max-w-2xl mx-auto mb-12">
               <div className="flex items-center justify-center gap-3 text-face-white text-lg">
                 <AlertCircle className="h-6 w-6 flex-shrink-0" />
-                <p className="font-manrope">
-                  <span className="font-bold">One vote per category.</span> We track IP addresses to ensure fair voting.
-                </p>
+                <p 
+                  className="font-manrope"
+                  dangerouslySetInnerHTML={{ __html: votingInfoMessage }}
+                />
               </div>
             </div>
             
@@ -400,21 +488,21 @@ const Categories = () => {
                 <Trophy className="h-7 w-7 text-face-white" />
                 <div className="text-left">
                   <div className="font-bold text-xl font-clash">{stats?.active_voting_categories || categories.filter(c => c.voting_open).length}</div>
-                  <div className="text-sm opacity-90 font-manrope">Active Categories</div>
+                  <div className="text-sm opacity-90 font-manrope">{statsLabels.active_categories}</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-face-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-face-white/40 hover:bg-face-white/40 transition-all duration-300 transform hover:scale-105">
                 <Users className="h-7 w-7 text-face-white" />
                 <div className="text-left">
                   <div className="font-bold text-xl font-clash">{stats?.total_nominees || categories.reduce((sum, cat) => sum + (cat.nominees_count || 0), 0)}</div>
-                  <div className="text-sm opacity-90 font-manrope">Total Nominees</div>
+                  <div className="text-sm opacity-90 font-manrope">{statsLabels.total_nominees}</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-face-white/30 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-face-white/40 hover:bg-face-white/40 transition-all duration-300 transform hover:scale-105">
                 <Vote className="h-7 w-7 text-face-white" />
                 <div className="text-left">
                   <div className="font-bold text-xl font-clash">{stats?.total_votes?.toLocaleString() || '0'}</div>
-                  <div className="text-sm opacity-90 font-manrope">Total Votes</div>
+                  <div className="text-sm opacity-90 font-manrope">{statsLabels.total_votes}</div>
                 </div>
               </div>
             </div>
@@ -446,9 +534,9 @@ const Categories = () => {
             <div className="text-center mb-12">
               <h2 className="text-4xl font-clash font-bold text-face-grey mb-4">
                 <Globe className="inline h-10 w-10 text-face-sky-blue mr-3" />
-                Explore by Region
+                {regionalNavTitle}
               </h2>
-              <p className="text-xl text-face-grey/60 font-manrope">Categories span across continents, celebrating global excellence</p>
+              <p className="text-xl text-face-grey/60 font-manrope">{regionalNavSubtitle}</p>
             </div>
             
             <div className="flex justify-center mb-12">
@@ -462,7 +550,7 @@ const Categories = () => {
                       : 'text-face-grey/60 hover:bg-face-white hover:text-face-sky-blue'
                   }`}
                 >
-                  All Regions
+                  {allRegionsText}
                 </Button>
                 {regions.map((region) => (
                   <Button
@@ -489,11 +577,12 @@ const Categories = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-clash font-bold text-face-grey mb-4">
-                Categories of <span className="text-face-sky-blue">Excellence</span>
-              </h2>
+              <h2 
+                className="text-4xl font-clash font-bold text-face-grey mb-4"
+                dangerouslySetInnerHTML={{ __html: categoriesGridTitle }}
+              />
               <p className="text-xl text-face-grey/60 max-w-3xl mx-auto font-manrope">
-                Each category represents a unique domain where exceptional achievements are recognized and celebrated
+                {categoriesGridSubtitle}
               </p>
             </div>
             
@@ -507,9 +596,9 @@ const Categories = () => {
               <div className="text-center py-20">
                 <div className="bg-face-white rounded-3xl p-12 shadow-xl border border-face-sky-blue/20 max-w-md mx-auto">
                   <Sparkles className="h-16 w-16 text-face-grey/40 mx-auto mb-6" />
-                  <h3 className="text-2xl font-bold text-face-grey mb-4 font-clash">No Categories Found</h3>
+                  <h3 className="text-2xl font-bold text-face-grey mb-4 font-clash">{emptyStateTitle}</h3>
                   <p className="text-face-grey/60 text-lg font-manrope">
-                    No categories found for the selected region. Try selecting a different region.
+                    {emptyStateMessage}
                   </p>
                 </div>
               </div>
@@ -524,10 +613,10 @@ const Categories = () => {
           <div className="max-w-4xl mx-auto">
             <Star className="h-16 w-16 text-face-white mx-auto mb-8 animate-float" />
             <h2 className="text-5xl font-clash font-bold mb-8 text-face-white">
-              Ready to Make Your Mark?
+              {ctaTitle}
             </h2>
             <p className="text-2xl text-face-white/90 mb-12 leading-relaxed font-manrope">
-              Join the community of excellence and help recognize outstanding achievements worldwide
+              {ctaSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button 
@@ -538,7 +627,7 @@ const Categories = () => {
                 className="bg-face-white text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white border-4 border-face-white hover:border-face-white shadow-2xl text-xl font-bold py-5 px-12 rounded-2xl transform hover:scale-105 transition-all duration-300 font-manrope"
               >
                 <Vote className="inline h-6 w-6 mr-3" />
-                Start Voting Now
+                {ctaPrimaryButton}
               </Button>
               <Button 
                 onClick={() => {
@@ -549,7 +638,7 @@ const Categories = () => {
                 className="border-4 border-face-white bg-transparent text-face-white hover:bg-face-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-5 px-12 rounded-2xl transform hover:scale-105 transition-all duration-300 font-manrope"
               >
                 <Trophy className="inline h-6 w-6 mr-3" />
-                Register for Event
+                {ctaSecondaryButton}
               </Button>
             </div>
           </div>

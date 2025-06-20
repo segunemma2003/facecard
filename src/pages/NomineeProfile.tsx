@@ -1,3 +1,4 @@
+// src/pages/NomineeProfile.tsx - Updated with Content API integration
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Award, Trophy, MapPin, Calendar, Video, Loader2, AlertCircle, Vote, CheckCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,8 +11,10 @@ import SocialLinks from '@/components/nominees/SocialLinks';
 import AchievementTimeline from '@/components/nominees/AchievementTimeline';
 import TestimonialsSection from '@/components/nominees/TestimonialsSection';
 import { useNominee, useVote, useVoteCheck } from '@/hooks/useApi';
+import { extractContent } from '@/lib/contentUtils';
 import { toast } from '@/components/ui/use-toast';
 import { useState } from 'react';
+import { usePageContent } from '@/hooks/usePageContent';
 
 const NomineeProfile = () => {
   const { id } = useParams();
@@ -19,13 +22,17 @@ const NomineeProfile = () => {
   const nomineeId = parseInt(id || '0');
   const [isVoting, setIsVoting] = useState(false);
   
-  // API Hooks
+  // API Hooks (keep existing)
   const { data: nomineeResponse, isLoading, error } = useNominee(nomineeId);
   const { data: voteCheckResponse } = useVoteCheck(nomineeId);
   const voteMutation = useVote();
   
+  // Content API Hook
+  const { data: contentResponse, isLoading: contentLoading, error: contentError } = usePageContent('nominee_profile');
+  
   const nominee = nomineeResponse?.data;
   const hasVoted = voteCheckResponse?.data?.has_voted || false;
+  const pageContent = contentResponse?.data;
 
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -39,15 +46,36 @@ const NomineeProfile = () => {
     try {
       await voteMutation.mutateAsync({ nomineeId: nominee.id });
       
+      const successTitle = extractContent(
+        pageContent?.voting_actions, 
+        'vote_success_title', 
+        'Vote Recorded!'
+      );
+      const successMessage = extractContent(
+        pageContent?.voting_actions, 
+        'vote_success_message', 
+        'Thank you for voting for {name}.'
+      ).replace('{name}', nominee.name);
+      
       toast({
-        title: "Vote Recorded!",
-        description: `Thank you for voting for ${nominee.name}.`,
+        title: successTitle,
+        description: successMessage,
       });
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || "Failed to record vote. Please try again.";
+      const failedTitle = extractContent(
+        pageContent?.voting_actions, 
+        'vote_failed_title', 
+        'Vote Failed'
+      );
+      const failedMessage = error?.response?.data?.message || extractContent(
+        pageContent?.voting_actions, 
+        'vote_failed_message', 
+        'Failed to record vote. Please try again.'
+      );
+      
       toast({
-        title: "Vote Failed",
-        description: errorMessage,
+        title: failedTitle,
+        description: failedMessage,
         variant: "destructive"
       });
     } finally {
@@ -56,14 +84,20 @@ const NomineeProfile = () => {
   };
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || contentLoading) {
+    const loadingText = extractContent(
+      pageContent?.error_states, 
+      'loading_profile_text', 
+      'Loading nominee profile...'
+    );
+    
     return (
       <div className="min-h-screen bg-face-white">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-face-sky-blue mx-auto mb-4" />
-            <p className="text-xl text-face-grey/60 font-manrope">Loading nominee profile...</p>
+            <p className="text-xl text-face-grey/60 font-manrope">{loadingText}</p>
           </div>
         </div>
         <Footer />
@@ -73,13 +107,29 @@ const NomineeProfile = () => {
 
   // Error state
   if (error || !nominee) {
+    const notFoundTitle = extractContent(
+      pageContent?.error_states, 
+      'nominee_not_found_title', 
+      'Nominee Not Found'
+    );
+    const notFoundMessage = extractContent(
+      pageContent?.error_states, 
+      'nominee_not_found_message', 
+      'We couldn\'t find the nominee you\'re looking for.'
+    );
+    const returnButtonText = extractContent(
+      pageContent?.error_states, 
+      'return_to_nominees_text', 
+      'Return to Nominees'
+    );
+    
     return (
       <div className="min-h-screen bg-face-white">
         <Navbar />
         <div className="container mx-auto px-4 py-16 text-center">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-6" />
-          <h1 className="text-3xl font-clash mb-4 text-face-grey">Nominee Not Found</h1>
-          <p className="mb-6 text-face-grey/60 font-manrope">We couldn't find the nominee you're looking for.</p>
+          <h1 className="text-3xl font-clash mb-4 text-face-grey">{notFoundTitle}</h1>
+          <p className="mb-6 text-face-grey/60 font-manrope">{notFoundMessage}</p>
           <Button 
             onClick={() => {
               navigate('/nominees');
@@ -87,13 +137,39 @@ const NomineeProfile = () => {
             }}
             className="bg-face-sky-blue text-face-white hover:bg-face-sky-blue-dark font-manrope"
           >
-            Return to Nominees
+            {returnButtonText}
           </Button>
         </div>
         <Footer />
       </div>
     );
   }
+
+  // Extract content with fallbacks
+  const backToNomineesText = extractContent(pageContent?.navigation, 'back_to_nominees_text', 'Back to All Nominees');
+  const winnerBadgeText = extractContent(pageContent?.navigation, 'winner_badge_text', '🏆 Winner');
+  
+  const currentStandingTitle = extractContent(pageContent?.profile_sections, 'current_standing_title', 'Current Standing');
+  const votePercentageLabel = extractContent(pageContent?.profile_sections, 'vote_percentage_label', 'Vote Percentage');
+  const totalVotesLabel = extractContent(pageContent?.profile_sections, 'total_votes_label', 'Total Votes');
+  const connectTitle = extractContent(pageContent?.profile_sections, 'connect_title', 'Connect');
+  const shareProfileTitle = extractContent(pageContent?.profile_sections, 'share_profile_title', 'Share Profile');
+  const impactSummaryTitle = extractContent(pageContent?.profile_sections, 'impact_summary_title', 'Impact Summary');
+  
+  const voteButtonText = extractContent(pageContent?.voting_actions, 'vote_button_text', 'Vote for {name}').replace('{name}', nominee.name.split(' ')[0]);
+  const votingText = extractContent(pageContent?.voting_actions, 'voting_text', 'Voting...');
+  const voteRecordedText = extractContent(pageContent?.voting_actions, 'vote_recorded_text', 'Vote Recorded');
+  
+  const profileTabText = extractContent(pageContent?.tabs, 'profile_tab_text', 'Profile');
+  const achievementsTabText = extractContent(pageContent?.tabs, 'achievements_tab_text', 'Achievements');
+  const testimonialsTabText = extractContent(pageContent?.tabs, 'testimonials_tab_text', 'Testimonials');
+  const mediaTabText = extractContent(pageContent?.tabs, 'media_tab_text', 'Media');
+  const achievementTimelineTitle = extractContent(pageContent?.tabs, 'achievement_timeline_title', 'Achievement Timeline');
+  const featuredVideoTitle = extractContent(pageContent?.tabs, 'featured_video_title', 'Featured Video');
+  
+  const twitterText = extractContent(pageContent?.social_sharing, 'twitter_text', 'Twitter');
+  const facebookText = extractContent(pageContent?.social_sharing, 'facebook_text', 'Facebook');
+  const linkedinText = extractContent(pageContent?.social_sharing, 'linkedin_text', 'LinkedIn');
 
   return (
     <div className="min-h-screen bg-face-white">
@@ -125,14 +201,14 @@ const NomineeProfile = () => {
               className="text-face-white opacity-80 hover:opacity-100 inline-flex items-center mb-6 font-manrope"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              <span>Back to All Nominees</span>
+              <span>{backToNomineesText}</span>
             </Button>
             <Badge className="mb-2 bg-face-gold text-face-grey font-manrope">
               {nominee.category}
             </Badge>
             {nominee.is_winner && (
               <Badge className="mb-2 ml-2 bg-green-500 text-face-white font-manrope">
-                🏆 Winner
+                {winnerBadgeText}
               </Badge>
             )}
             <h1 className="text-3xl md:text-4xl text-face-white font-clash font-bold mb-2">
@@ -177,16 +253,16 @@ const NomineeProfile = () => {
                 <div className="bg-face-white p-6 rounded-lg border border-face-sky-blue/20 shadow-sm">
                   <h3 className="font-clash font-bold mb-3 flex items-center text-face-grey">
                     <Trophy className="h-5 w-5 text-face-sky-blue mr-2" />
-                    Current Standing
+                    {currentStandingTitle}
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-face-grey/60 font-manrope">Vote Percentage</span>
+                      <span className="text-face-grey/60 font-manrope">{votePercentageLabel}</span>
                       <span className="font-medium text-face-sky-blue font-manrope">{nominee.voting_percentage.toFixed(1)}%</span>
                     </div>
                     <Progress value={nominee.voting_percentage} className="h-2 bg-face-sky-blue/10" />
                     <div className="flex justify-between text-sm">
-                      <span className="text-face-grey/60 font-manrope">Total Votes</span>
+                      <span className="text-face-grey/60 font-manrope">{totalVotesLabel}</span>
                       <span className="font-medium text-face-sky-blue font-manrope">{nominee.votes}</span>
                     </div>
                   </div>
@@ -207,17 +283,17 @@ const NomineeProfile = () => {
                       {isVoting || voteMutation.isPending ? (
                         <>
                           <Loader2 className="inline h-5 w-5 mr-2 animate-spin" />
-                          Voting...
+                          {votingText}
                         </>
                       ) : hasVoted ? (
                         <>
                           <CheckCircle className="inline h-5 w-5 mr-2" />
-                          Vote Recorded
+                          {voteRecordedText}
                         </>
                       ) : (
                         <>
                           <Vote className="inline h-5 w-5 mr-2" />
-                          Vote for {nominee.name.split(' ')[0]}
+                          {voteButtonText}
                         </>
                       )}
                     </Button>
@@ -227,18 +303,18 @@ const NomineeProfile = () => {
                 {/* Social Links */}
                 {nominee.social_links && nominee.social_links.length > 0 && (
                   <div className="bg-face-white p-6 rounded-lg border border-face-sky-blue/20 shadow-sm">
-                    <h3 className="font-clash font-bold mb-3 text-face-grey">Connect</h3>
+                    <h3 className="font-clash font-bold mb-3 text-face-grey">{connectTitle}</h3>
                     <SocialLinks links={nominee.social_links} />
                   </div>
                 )}
 
                 {/* Share section */}
                 <div className="bg-face-white p-6 rounded-lg border border-face-sky-blue/20 shadow-sm">
-                  <h3 className="font-clash font-bold mb-3 text-face-grey">Share Profile</h3>
+                  <h3 className="font-clash font-bold mb-3 text-face-grey">{shareProfileTitle}</h3>
                   <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" className="border-face-sky-blue/30 text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white font-manrope">Twitter</Button>
-                    <Button variant="outline" size="sm" className="border-face-sky-blue/30 text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white font-manrope">Facebook</Button>
-                    <Button variant="outline" size="sm" className="border-face-sky-blue/30 text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white font-manrope">LinkedIn</Button>
+                    <Button variant="outline" size="sm" className="border-face-sky-blue/30 text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white font-manrope">{twitterText}</Button>
+                    <Button variant="outline" size="sm" className="border-face-sky-blue/30 text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white font-manrope">{facebookText}</Button>
+                    <Button variant="outline" size="sm" className="border-face-sky-blue/30 text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white font-manrope">{linkedinText}</Button>
                   </div>
                 </div>
               </div>
@@ -249,15 +325,15 @@ const NomineeProfile = () => {
               <div className="bg-face-white p-6 md:p-8 rounded-lg border border-face-sky-blue/20 shadow-sm">
                 <Tabs defaultValue="profile" className="w-full">
                   <TabsList className="mb-6 bg-face-sky-blue/5 border border-face-sky-blue/20">
-                    <TabsTrigger value="profile" className="font-manrope data-[state=active]:bg-face-sky-blue data-[state=active]:text-face-white">Profile</TabsTrigger>
+                    <TabsTrigger value="profile" className="font-manrope data-[state=active]:bg-face-sky-blue data-[state=active]:text-face-white">{profileTabText}</TabsTrigger>
                     {nominee.achievements && nominee.achievements.length > 0 && (
-                      <TabsTrigger value="achievements" className="font-manrope data-[state=active]:bg-face-sky-blue data-[state=active]:text-face-white">Achievements</TabsTrigger>
+                      <TabsTrigger value="achievements" className="font-manrope data-[state=active]:bg-face-sky-blue data-[state=active]:text-face-white">{achievementsTabText}</TabsTrigger>
                     )}
                     {nominee.testimonials && nominee.testimonials.length > 0 && (
-                      <TabsTrigger value="testimonials" className="font-manrope data-[state=active]:bg-face-sky-blue data-[state=active]:text-face-white">Testimonials</TabsTrigger>
+                      <TabsTrigger value="testimonials" className="font-manrope data-[state=active]:bg-face-sky-blue data-[state=active]:text-face-white">{testimonialsTabText}</TabsTrigger>
                     )}
                     {nominee.video_url && (
-                      <TabsTrigger value="media" className="font-manrope data-[state=active]:bg-face-sky-blue data-[state=active]:text-face-white">Media</TabsTrigger>
+                      <TabsTrigger value="media" className="font-manrope data-[state=active]:bg-face-sky-blue data-[state=active]:text-face-white">{mediaTabText}</TabsTrigger>
                     )}
                   </TabsList>
                   
@@ -270,7 +346,7 @@ const NomineeProfile = () => {
                       
                       {nominee.impact_summary && (
                         <>
-                          <h3 className="font-clash text-xl mb-3 text-face-grey">Impact Summary</h3>
+                          <h3 className="font-clash text-xl mb-3 text-face-grey">{impactSummaryTitle}</h3>
                           <div className="bg-face-sky-blue/5 border-l-4 border-face-sky-blue p-4 rounded">
                             <p className="text-face-grey/80 font-manrope">{nominee.impact_summary}</p>
                           </div>
@@ -281,14 +357,14 @@ const NomineeProfile = () => {
                   
                   {nominee.achievements && nominee.achievements.length > 0 && (
                     <TabsContent value="achievements" className="mt-0 space-y-6">
-                      <h2 className="font-clash text-2xl mb-4 text-face-grey">Achievement Timeline</h2>
+                      <h2 className="font-clash text-2xl mb-4 text-face-grey">{achievementTimelineTitle}</h2>
                       <AchievementTimeline achievements={nominee.achievements} />
                     </TabsContent>
                   )}
                   
                   {nominee.testimonials && nominee.testimonials.length > 0 && (
                     <TabsContent value="testimonials" className="mt-0 space-y-6">
-                      <h2 className="font-clash text-2xl mb-4 text-face-grey">Testimonials</h2>
+                      <h2 className="font-clash text-2xl mb-4 text-face-grey">{testimonialsTabText}</h2>
                       <TestimonialsSection testimonials={nominee.testimonials} />
                     </TabsContent>
                   )}
@@ -297,7 +373,7 @@ const NomineeProfile = () => {
                     <TabsContent value="media" className="mt-0 space-y-6">
                       <h2 className="font-clash text-2xl mb-4 flex items-center text-face-grey">
                         <Video className="h-5 w-5 text-face-sky-blue mr-2" />
-                        Featured Video
+                        {featuredVideoTitle}
                       </h2>
                       <div className="aspect-w-16 aspect-h-9 bg-face-sky-blue/5 rounded-lg overflow-hidden">
                         <iframe

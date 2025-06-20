@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api';
+import { extractContent } from '@/lib/contentUtils';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
@@ -7,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
+import { useGlobalSettings, usePageContent } from '@/hooks/usePageContent';
+
 
 const Contact = () => {
   const navigate = useNavigate();
@@ -18,6 +23,53 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+
+  // Fetch content from API
+  const { data: heroContent } = usePageContent('contact', 'hero');
+  const { data: formContent } = usePageContent('contact', 'contact_form');
+  const { data: contactInfoContent } = usePageContent('contact', 'contact_information');
+  const { data: formMessages } = usePageContent('contact', 'form_messages');
+  const { data: mapContent } = usePageContent('contact', 'map_section');
+  const { data: faqContent } = usePageContent('contact', 'faq_cta');
+  const { data: globalSettings } = useGlobalSettings();
+
+  // Content extraction helper
+  const getContent = (source: any, key: string, fallback: string = '', options?: any) => {
+    if (!source?.data?.data) return fallback;
+    return extractContent(source.data.data, key, fallback, options);
+  };
+
+  // Parse stats badges from JSON
+  const getStatsBadges = () => {
+    try {
+      const statsContent = heroContent?.data?.data?.stats_badges?.content;
+      if (statsContent) {
+        const stats = JSON.parse(statsContent);
+        return stats.map((stat: any) => ({
+          icon: getIconComponent(stat.icon),
+          text: stat.text
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to parse stats badges:', error);
+    }
+    
+    // Fallback stats
+    return [
+      { icon: Clock, text: '24-48 Hour Response' },
+      { icon: Phone, text: 'Global Support' },
+      { icon: MapPin, text: 'Worldwide' }
+    ];
+  };
+
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: any } = {
+      clock: Clock,
+      phone: Phone,
+      'map-pin': MapPin
+    };
+    return iconMap[iconName] || Clock;
+  };
 
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -37,8 +89,8 @@ const Contact = () => {
     // Basic validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.subject || !formData.message) {
       toast({
-        title: "Please fill in all fields",
-        description: "All fields are required to submit your message.",
+        title: getContent(formMessages, 'validation_error_title', 'Please fill in all fields'),
+        description: getContent(formMessages, 'validation_error_message', 'All fields are required to submit your message.'),
         variant: "destructive"
       });
       return;
@@ -58,8 +110,8 @@ const Contact = () => {
           email: formData.email,
           subject: formData.subject,
           message: formData.message,
-          _replyto: formData.email, // Formspree will use this for reply-to
-          _subject: `FACE Awards Contact: ${formData.subject}`, // Custom subject line
+          _replyto: formData.email,
+          _subject: `FACE Awards Contact: ${formData.subject}`,
         }),
       });
 
@@ -68,8 +120,8 @@ const Contact = () => {
       }
       
       toast({
-        title: "Message sent successfully!",
-        description: "Thank you for contacting us. We'll get back to you within 24-48 hours.",
+        title: getContent(formMessages, 'success_title', 'Message sent successfully!'),
+        description: getContent(formMessages, 'success_message', "Thank you for contacting us. We'll get back to you within 24-48 hours."),
       });
 
       // Reset form
@@ -83,14 +135,21 @@ const Contact = () => {
     } catch (error) {
       console.error('Contact form error:', error);
       toast({
-        title: "Failed to send message",
-        description: "Please try again or contact us directly at info@faceawards.org",
+        title: getContent(formMessages, 'error_title', 'Failed to send message'),
+        description: getContent(formMessages, 'error_message', 'Please try again or contact us directly at info@faceawards.org'),
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Get dynamic content
+  const mainTitle = getContent(heroContent, 'main_title', 'Get in <span class="text-face-sky-blue-light">Touch</span>');
+  const subtitle = getContent(heroContent, 'subtitle', "Have questions about the FACE Awards? We're here to help you with any inquiries");
+  const backgroundImage = getContent(heroContent, 'background_image', 'https://images.pexels.com/photos/5668858/pexels-photo-5668858.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop');
+  
+  const statsBadges = getStatsBadges();
 
   return (
     <div className="min-h-screen bg-face-white">
@@ -101,7 +160,7 @@ const Contact = () => {
         {/* Background hero image with stronger overlay */}
         <div className="absolute inset-0">
           <img 
-            src="https://images.pexels.com/photos/5668858/pexels-photo-5668858.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
+            src={backgroundImage}
             alt="Professional contact and communication background"
             className="w-full h-full object-cover"
           />
@@ -128,29 +187,24 @@ const Contact = () => {
             </div>
             
             {/* Main heading */}
-            <h1 className="text-6xl md:text-7xl font-clash font-bold mb-6 text-face-white">
-              Get in <span className="text-face-sky-blue-light">Touch</span>
-            </h1>
+            <h1 
+              className="text-6xl md:text-7xl font-clash font-bold mb-6 text-face-white"
+              dangerouslySetInnerHTML={{ __html: mainTitle }}
+            />
             
             {/* Subtitle */}
             <p className="text-2xl text-face-white mb-8 font-semibold font-manrope">
-              Have questions about the FACE Awards? We're here to help you with any inquiries
+              {subtitle}
             </p>
             
             {/* Stats */}
             <div className="flex flex-wrap justify-center gap-6 text-lg text-face-white">
-              <div className="flex items-center gap-3 bg-face-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-face-white/60 hover:bg-face-white/50 transition-all duration-300">
-                <Clock className="h-6 w-6 text-face-white" />
-                <span className="font-bold font-manrope">24-48 Hour Response</span>
-              </div>
-              <div className="flex items-center gap-3 bg-face-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-face-white/60 hover:bg-face-white/50 transition-all duration-300">
-                <Phone className="h-6 w-6 text-face-white" />
-                <span className="font-bold font-manrope">Global Support</span>
-              </div>
-              <div className="flex items-center gap-3 bg-face-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-face-white/60 hover:bg-face-white/50 transition-all duration-300">
-                <MapPin className="h-6 w-6 text-face-white" />
-                <span className="font-bold font-manrope">Worldwide</span>
-              </div>
+              {statsBadges.map((badge, index) => (
+                <div key={index} className="flex items-center gap-3 bg-face-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-face-white/60 hover:bg-face-white/50 transition-all duration-300">
+                  <badge.icon className="h-6 w-6 text-face-white" />
+                  <span className="font-bold font-manrope">{badge.text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -174,39 +228,42 @@ const Contact = () => {
             <div className="grid md:grid-cols-2 gap-16">
               {/* Contact Form */}
               <div>
-                <h2 className="text-4xl font-clash font-bold mb-6 text-face-grey">
-                  Send us a <span className="text-face-sky-blue">Message</span>
-                </h2>
+                <h2 
+                  className="text-4xl font-clash font-bold mb-6 text-face-grey"
+                  dangerouslySetInnerHTML={{ 
+                    __html: getContent(formContent, 'form_title', 'Send us a <span class="text-face-sky-blue">Message</span>')
+                  }}
+                />
                 <p className="text-face-grey/60 mb-8 text-lg font-manrope">
-                  Fill out the form below and our team will get back to you as soon as possible.
+                  {getContent(formContent, 'form_subtitle', 'Fill out the form below and our team will get back to you as soon as possible.')}
                 </p>
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="firstName" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
-                        First Name *
+                        {getContent(formContent, 'first_name_label', 'First Name *')}
                       </label>
                       <Input
                         id="firstName"
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        placeholder="John"
+                        placeholder={getContent(formContent, 'first_name_placeholder', 'John')}
                         className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue font-manrope"
                         required
                       />
                     </div>
                     <div>
                       <label htmlFor="lastName" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
-                        Last Name *
+                        {getContent(formContent, 'last_name_label', 'Last Name *')}
                       </label>
                       <Input
                         id="lastName"
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        placeholder="Doe"
+                        placeholder={getContent(formContent, 'last_name_placeholder', 'Doe')}
                         className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue font-manrope"
                         required
                       />
@@ -215,7 +272,7 @@ const Contact = () => {
                   
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
-                      Email Address *
+                      {getContent(formContent, 'email_label', 'Email Address *')}
                     </label>
                     <Input
                       id="email"
@@ -223,7 +280,7 @@ const Contact = () => {
                       type="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="john.doe@example.com"
+                      placeholder={getContent(formContent, 'email_placeholder', 'john.doe@example.com')}
                       className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue font-manrope"
                       required
                     />
@@ -231,14 +288,14 @@ const Contact = () => {
                   
                   <div>
                     <label htmlFor="subject" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
-                      Subject *
+                      {getContent(formContent, 'subject_label', 'Subject *')}
                     </label>
                     <Input
                       id="subject"
                       name="subject"
                       value={formData.subject}
                       onChange={handleInputChange}
-                      placeholder="How can we help you?"
+                      placeholder={getContent(formContent, 'subject_placeholder', 'How can we help you?')}
                       className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue font-manrope"
                       required
                     />
@@ -246,14 +303,14 @@ const Contact = () => {
                   
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
-                      Message *
+                      {getContent(formContent, 'message_label', 'Message *')}
                     </label>
                     <Textarea
                       id="message"
                       name="message"
                       value={formData.message}
                       onChange={handleInputChange}
-                      placeholder="Please provide details about your inquiry..."
+                      placeholder={getContent(formContent, 'message_placeholder', 'Please provide details about your inquiry...')}
                       className="w-full min-h-[150px] border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue resize-vertical font-manrope"
                       required
                     />
@@ -267,12 +324,12 @@ const Contact = () => {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        Sending...
+                        {getContent(formContent, 'sending_button_text', 'Sending...')}
                       </>
                     ) : (
                       <>
                         <Send className="h-5 w-5" />
-                        Send Message
+                        {getContent(formContent, 'submit_button_text', 'Send Message')}
                       </>
                     )}
                   </Button>
@@ -281,12 +338,14 @@ const Contact = () => {
               
               {/* Contact Information */}
               <div>
-                <h2 className="text-4xl font-clash font-bold mb-6 text-face-grey">
-                  Contact <span className="text-face-sky-blue">Information</span>
-                </h2>
+                <h2 
+                  className="text-4xl font-clash font-bold mb-6 text-face-grey"
+                  dangerouslySetInnerHTML={{
+                    __html: getContent(contactInfoContent, 'info_title', 'Contact <span class="text-face-sky-blue">Information</span>')
+                  }}
+                />
                 <p className="text-face-grey/60 mb-8 text-lg font-manrope">
-                  Our team is available to assist you with any questions regarding nominations,
-                  event details, or general inquiries about the FACE Awards.
+                  {getContent(contactInfoContent, 'info_subtitle', 'Our team is available to assist you with any questions regarding nominations, event details, or general inquiries about the FACE Awards.')}
                 </p>
                 
                 <div className="space-y-8">
@@ -295,20 +354,26 @@ const Contact = () => {
                       <Mail className="h-8 w-8 text-face-sky-blue" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">Email Us</h3>
-                      <p className="text-face-grey/60 mb-1 font-manrope">For general inquiries:</p>
+                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">
+                        {getContent(contactInfoContent, 'email_section_title', 'Email Us')}
+                      </h3>
+                      <p className="text-face-grey/60 mb-1 font-manrope">
+                        {getContent(contactInfoContent, 'email_general_label', 'For general inquiries:')}
+                      </p>
                       <a 
-                        href="mailto:info@faceawards.org" 
+                        href={`mailto:${getContent(globalSettings, 'primary_email', 'info@faceawards.org')}`}
                         className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg font-manrope"
                       >
-                        info@faceawards.org
+                        {getContent(globalSettings, 'primary_email', 'info@faceawards.org')}
                       </a>
-                      <p className="text-face-grey/60 mt-3 mb-1 font-manrope">For nominations:</p>
+                      <p className="text-face-grey/60 mt-3 mb-1 font-manrope">
+                        {getContent(contactInfoContent, 'email_nominations_label', 'For nominations:')}
+                      </p>
                       <a 
-                        href="mailto:nominations@faceawards.org" 
+                        href={`mailto:${getContent(globalSettings, 'nominations_email', 'nominations@faceawards.org')}`}
                         className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg font-manrope"
                       >
-                        nominations@faceawards.org
+                        {getContent(globalSettings, 'nominations_email', 'nominations@faceawards.org')}
                       </a>
                     </div>
                   </div>
@@ -318,20 +383,26 @@ const Contact = () => {
                       <Phone className="h-8 w-8 text-face-sky-blue" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">Call Us</h3>
-                      <p className="text-face-grey/60 mb-1 font-manrope">International:</p>
+                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">
+                        {getContent(contactInfoContent, 'phone_section_title', 'Call Us')}
+                      </h3>
+                      <p className="text-face-grey/60 mb-1 font-manrope">
+                        {getContent(contactInfoContent, 'phone_international_label', 'International:')}
+                      </p>
                       <a 
-                        href="tel:+12345678901" 
+                        href={`tel:${getContent(globalSettings, 'phone_international', '+1 (234) 567-8901').replace(/[^+\d]/g, '')}`}
                         className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg font-manrope"
                       >
-                        +1 (234) 567-8901
+                        {getContent(globalSettings, 'phone_international', '+1 (234) 567-8901')}
                       </a>
-                      <p className="text-face-grey/60 mt-3 mb-1 font-manrope">Toll Free:</p>
+                      <p className="text-face-grey/60 mt-3 mb-1 font-manrope">
+                        {getContent(contactInfoContent, 'phone_toll_free_label', 'Toll Free:')}
+                      </p>
                       <a 
-                        href="tel:+18005551000" 
+                        href={`tel:${getContent(globalSettings, 'phone_toll_free', '1-800-555-1000').replace(/[^+\d]/g, '')}`}
                         className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg font-manrope"
                       >
-                        1-800-555-1000
+                        {getContent(globalSettings, 'phone_toll_free', '1-800-555-1000')}
                       </a>
                     </div>
                   </div>
@@ -341,13 +412,18 @@ const Contact = () => {
                       <MapPin className="h-8 w-8 text-face-sky-blue" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">Visit Us</h3>
-                      <p className="text-face-grey/60 leading-relaxed font-manrope">
-                        FACE Awards Global Headquarters<br />
-                         3120 Southwest freeway 1st floor<br />
-                         2003 Houston TX 77098<br />
-                        United States
-                      </p>
+                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">
+                        {getContent(contactInfoContent, 'address_section_title', 'Visit Us')}
+                      </h3>
+                      <div 
+                        className="text-face-grey/60 leading-relaxed font-manrope"
+                        dangerouslySetInnerHTML={{
+                          __html: getContent(globalSettings, 'full_address', 
+                            'FACE Awards Global Headquarters<br>3120 Southwest freeway 1st floor<br>2003 Houston TX 77098<br>United States',
+                            { stripHtml: false }
+                          )
+                        }}
+                      />
                     </div>
                   </div>
                   
@@ -356,13 +432,20 @@ const Contact = () => {
                       <Clock className="h-8 w-8 text-face-sky-blue" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">Office Hours</h3>
-                      <p className="text-face-grey/60 leading-relaxed font-manrope">
-                        Monday - Friday: 9:00 AM - 5:00 PM (EST)<br />
-                        Saturday & Sunday: Closed
-                      </p>
+                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">
+                        {getContent(contactInfoContent, 'office_hours_section_title', 'Office Hours')}
+                      </h3>
+                      <div 
+                        className="text-face-grey/60 leading-relaxed font-manrope"
+                        dangerouslySetInnerHTML={{
+                          __html: getContent(globalSettings, 'office_hours', 
+                            'Monday - Friday: 9:00 AM - 5:00 PM (EST)<br>Saturday & Sunday: Closed',
+                            { stripHtml: false }
+                          )
+                        }}
+                      />
                       <p className="text-face-grey/60 mt-3 font-manrope">
-                        Response Time: Within 24-48 business hours
+                        {getContent(contactInfoContent, 'response_time_label', 'Response Time:')} {getContent(globalSettings, 'response_time', 'Within 24-48 business hours')}
                       </p>
                     </div>
                   </div>
@@ -377,12 +460,15 @@ const Contact = () => {
       <section className="py-20 bg-face-sky-blue/5">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl font-clash font-bold mb-12 text-center text-face-grey">
-              Our <span className="text-face-sky-blue">Location</span>
-            </h2>
+            <h2 
+              className="text-4xl font-clash font-bold mb-12 text-center text-face-grey"
+              dangerouslySetInnerHTML={{
+                __html: getContent(mapContent, 'title', 'Our <span class="text-face-sky-blue">Location</span>')
+              }}
+            />
             <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-2xl border-4 border-face-white">
               <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387193.3059353029!2d-74.25986548248684!3d40.697149422113014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sca!4v1653486359204!5m2!1sen!2sca" 
+                src={getContent(globalSettings, 'google_maps_embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387193.3059353029!2d-74.25986548248684!3d40.697149422113014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sca!4v1653486359204!5m2!1sen!2sca')}
                 width="100%" 
                 height="100%" 
                 style={{ border: 0 }} 
@@ -400,10 +486,10 @@ const Contact = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-clash font-bold mb-8 text-face-white">
-              Still Have Questions?
+              {getContent(faqContent, 'title', 'Still Have Questions?')}
             </h2>
             <p className="text-xl mb-12 text-face-white/90 leading-relaxed font-manrope">
-              Check out our award process or explore our categories for more information about the FACE Awards.
+              {getContent(faqContent, 'subtitle', 'Check out our award process or explore our categories for more information about the FACE Awards.')}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button
@@ -413,7 +499,7 @@ const Contact = () => {
                 }}
                 className="bg-face-white text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white border-4 border-face-white hover:border-face-white shadow-2xl text-xl font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 font-manrope"
               >
-                View Award Process
+                {getContent(faqContent, 'primary_button_text', 'View Award Process')}
               </Button>
               <Button
                 onClick={() => {
@@ -423,7 +509,7 @@ const Contact = () => {
                 variant="outline"
                 className="border-4 border-face-white bg-transparent text-face-white hover:bg-face-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 font-manrope"
               >
-                Explore Categories
+                {getContent(faqContent, 'secondary_button_text', 'Explore Categories')}
               </Button>
             </div>
           </div>

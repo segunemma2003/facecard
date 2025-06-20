@@ -1,3 +1,4 @@
+// src/pages/Gallery.tsx - Updated with Content API integration
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -5,6 +6,8 @@ import Footer from '@/components/layout/Footer';
 import { Image, X, ChevronLeft, ChevronRight, Calendar, MapPin, Users, Award, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGalleryEvents, useGalleryYears } from '@/hooks/useApi';
+import { extractContent } from '@/lib/contentUtils';
+import { usePageContent } from '@/hooks/usePageContent';
 
 const Gallery = () => {
   const navigate = useNavigate();
@@ -13,15 +16,19 @@ const Gallery = () => {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // API Hooks
+  // API Hooks (keep existing)
   const { data: galleryResponse, isLoading, error } = useGalleryEvents({
     year: selectedYear,
     featured_only: false
   });
   const { data: yearsResponse } = useGalleryYears();
 
+  // Content API Hook
+  const { data: contentResponse, isLoading: contentLoading, error: contentError } = usePageContent('gallery');
+
   const galleryData = galleryResponse?.data || [];
   const years = yearsResponse?.data || [];
+  const pageContent = contentResponse?.data;
 
   // Set default year to the most recent year
   useEffect(() => {
@@ -73,14 +80,20 @@ const Gallery = () => {
   const totalImages = galleryData.reduce((sum, event) => sum + (event.images?.length || 0), 0);
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || contentLoading) {
+    const loadingText = extractContent(
+      pageContent?.loading_states, 
+      'loading_gallery_text', 
+      'Loading gallery...'
+    );
+    
     return (
       <div className="min-h-screen bg-face-white">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-face-sky-blue mx-auto mb-4" />
-            <p className="text-xl text-face-grey/60 font-manrope">Loading gallery...</p>
+            <p className="text-xl text-face-grey/60 font-manrope">{loadingText}</p>
           </div>
         </div>
         <Footer />
@@ -88,20 +101,31 @@ const Gallery = () => {
     );
   }
 
-  // Error state
+  // Error state - prioritize gallery error over content error
   if (error) {
+    const failedToLoadText = extractContent(
+      pageContent?.loading_states, 
+      'failed_to_load_text', 
+      'Failed to load gallery'
+    );
+    const tryAgainText = extractContent(
+      pageContent?.loading_states, 
+      'try_again_button_text', 
+      'Try Again'
+    );
+    
     return (
       <div className="min-h-screen bg-face-white">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <p className="text-xl text-face-grey/60 mb-4 font-manrope">Failed to load gallery</p>
+            <p className="text-xl text-face-grey/60 mb-4 font-manrope">{failedToLoadText}</p>
             <Button 
               onClick={() => window.location.reload()} 
               className="bg-face-sky-blue text-face-white px-6 py-2 rounded-lg hover:bg-face-sky-blue-dark transition-colors font-manrope"
             >
-              Try Again
+              {tryAgainText}
             </Button>
           </div>
         </div>
@@ -109,6 +133,47 @@ const Gallery = () => {
       </div>
     );
   }
+
+  // Extract content with fallbacks
+  const heroTitle = pageContent?.hero?.find(item => item.key === 'main_title')?.content || 'Event <span class="text-face-sky-blue-light">Gallery</span>';
+  const heroSubtitle = extractContent(pageContent?.hero, 'subtitle', 'Experience the grandeur and inspiration of FACE Award ceremonies from around the world');
+  const heroBackgroundImage = extractContent(pageContent?.hero, 'background_image', 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop');
+
+  // Parse stats labels from JSON content
+  let statsLabels = { 
+    events: { label: 'Events', suffix: '+' }, 
+    photos: { label: 'Photos', suffix: '+' }, 
+    years: { label: 'Years', suffix: '+' } 
+  };
+  try {
+    const statsLabelsContent = pageContent?.hero?.find(item => item.key === 'stats_labels')?.content;
+    if (statsLabelsContent) {
+      const parsed = JSON.parse(statsLabelsContent);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          if (item.key && item.label) {
+            statsLabels[item.key] = { label: item.label, suffix: item.suffix || '' };
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to parse stats labels:', error);
+  }
+
+  const eventsSuffix = extractContent(pageContent?.year_selector, 'events_suffix', 'Events');
+  
+  const noImagesTitle = extractContent(pageContent?.gallery_content, 'no_images_title', 'No Images Available');
+  const noImagesMessage = extractContent(pageContent?.gallery_content, 'no_images_message', 'Images for this event are coming soon.');
+  const noEventsTitle = extractContent(pageContent?.gallery_content, 'no_events_title', 'No Events Found');
+  const noEventsMessageWithYear = extractContent(pageContent?.gallery_content, 'no_events_message_with_year', 'No events found for {year}. Try selecting a different year.');
+  const noEventsMessageGeneral = extractContent(pageContent?.gallery_content, 'no_events_message_general', 'No events available at the moment.');
+  const imageCounterText = extractContent(pageContent?.gallery_content, 'image_counter_text', 'of');
+
+  const ctaTitle = extractContent(pageContent?.call_to_action, 'title', 'Be Part of Our Next Celebration');
+  const ctaSubtitle = extractContent(pageContent?.call_to_action, 'subtitle', 'Join us at upcoming FACE Awards events and become part of our global community celebrating excellence.');
+  const ctaPrimaryButton = extractContent(pageContent?.call_to_action, 'primary_button_text', 'Register for Next Event');
+  const ctaSecondaryButton = extractContent(pageContent?.call_to_action, 'secondary_button_text', 'View Current Nominees');
 
   return (
     <div className="min-h-screen bg-face-white">
@@ -119,7 +184,7 @@ const Gallery = () => {
         {/* Background hero image with overlay */}
         <div className="absolute inset-0">
           <img 
-            src="https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
+            src={heroBackgroundImage}
             alt="Awards ceremony background"
             className="w-full h-full object-cover"
           />
@@ -146,28 +211,35 @@ const Gallery = () => {
             </div>
             
             {/* Main heading */}
-            <h1 className="text-6xl md:text-7xl font-clash font-bold mb-6 text-face-white">
-              Event <span className="text-face-sky-blue-light">Gallery</span>
-            </h1>
+            <h1 
+              className="text-6xl md:text-7xl font-clash font-bold mb-6 text-face-white"
+              dangerouslySetInnerHTML={{ __html: heroTitle }}
+            />
             
             {/* Subtitle */}
             <p className="text-2xl text-face-white mb-8 font-semibold font-manrope">
-              Experience the grandeur and inspiration of FACE Award ceremonies from around the world
+              {heroSubtitle}
             </p>
             
             {/* Stats */}
             <div className="flex flex-wrap justify-center gap-6 text-lg text-face-white">
               <div className="flex items-center gap-3 bg-face-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-face-white/60 hover:bg-face-white/50 transition-all duration-300">
                 <Award className="h-6 w-6 text-face-white" />
-                <span className="font-bold font-manrope">{galleryData.length}+ Events</span>
+                <span className="font-bold font-manrope">
+                  {galleryData.length}{statsLabels.events.suffix} {statsLabels.events.label}
+                </span>
               </div>
               <div className="flex items-center gap-3 bg-face-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-face-white/60 hover:bg-face-white/50 transition-all duration-300">
                 <Image className="h-6 w-6 text-face-white" />
-                <span className="font-bold font-manrope">{totalImages}+ Photos</span>
+                <span className="font-bold font-manrope">
+                  {totalImages}{statsLabels.photos.suffix} {statsLabels.photos.label}
+                </span>
               </div>
               <div className="flex items-center gap-3 bg-face-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-face-white/60 hover:bg-face-white/50 transition-all duration-300">
                 <Calendar className="h-6 w-6 text-face-white" />
-                <span className="font-bold font-manrope">{years.length}+ Years</span>
+                <span className="font-bold font-manrope">
+                  {years.length}{statsLabels.years.suffix} {statsLabels.years.label}
+                </span>
               </div>
             </div>
           </div>
@@ -202,7 +274,7 @@ const Gallery = () => {
                         : 'bg-face-white text-face-grey hover:bg-face-sky-blue/10 hover:text-face-sky-blue'
                     }`}
                   >
-                    {year} Events
+                    {year} {eventsSuffix}
                   </Button>
                 ))}
               </div>
@@ -281,7 +353,7 @@ const Gallery = () => {
                         {/* Image number indicator */}
                         <div className="absolute top-6 left-6">
                           <div className="bg-face-sky-blue text-face-white px-4 py-2 rounded-full text-lg font-bold shadow-xl font-manrope">
-                            {imageIndex + 1} of {event.images.length}
+                            {imageIndex + 1} {imageCounterText} {event.images.length}
                           </div>
                         </div>
                       </div>
@@ -291,9 +363,9 @@ const Gallery = () => {
                   <div className="text-center py-20">
                     <div className="bg-face-white rounded-3xl p-12 shadow-xl border border-face-sky-blue/20 max-w-md mx-auto">
                       <Image className="h-16 w-16 text-face-grey/40 mx-auto mb-6" />
-                      <h3 className="text-2xl font-bold text-face-grey mb-4 font-clash">No Images Available</h3>
+                      <h3 className="text-2xl font-bold text-face-grey mb-4 font-clash">{noImagesTitle}</h3>
                       <p className="text-face-grey/60 text-lg font-manrope">
-                        Images for this event are coming soon.
+                        {noImagesMessage}
                       </p>
                     </div>
                   </div>
@@ -307,9 +379,12 @@ const Gallery = () => {
             <div className="text-center py-20">
               <div className="bg-face-white rounded-3xl p-12 shadow-xl border border-face-sky-blue/20 max-w-md mx-auto">
                 <Calendar className="h-16 w-16 text-face-grey/40 mx-auto mb-6" />
-                <h3 className="text-2xl font-bold text-face-grey mb-4 font-clash">No Events Found</h3>
+                <h3 className="text-2xl font-bold text-face-grey mb-4 font-clash">{noEventsTitle}</h3>
                 <p className="text-face-grey/60 text-lg font-manrope">
-                  {selectedYear ? `No events found for ${selectedYear}. Try selecting a different year.` : 'No events available at the moment.'}
+                  {selectedYear 
+                    ? noEventsMessageWithYear.replace('{year}', selectedYear.toString())
+                    : noEventsMessageGeneral
+                  }
                 </p>
               </div>
             </div>
@@ -367,7 +442,7 @@ const Gallery = () => {
                       <span className="font-bold font-manrope">{galleryData[currentEventIndex].date}</span>
                     </div>
                     <div className="text-face-white font-bold text-xl bg-face-white/20 px-6 py-3 rounded-2xl border-2 border-face-white/30 font-manrope">
-                      {currentImageIndex + 1} of {galleryData[currentEventIndex].images.length}
+                      {currentImageIndex + 1} {imageCounterText} {galleryData[currentEventIndex].images.length}
                     </div>
                   </div>
                 </div>
@@ -382,10 +457,10 @@ const Gallery = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-5xl font-clash font-bold mb-8 text-face-white">
-              Be Part of Our Next Celebration
+              {ctaTitle}
             </h2>
             <p className="text-2xl text-face-white/90 mb-12 leading-relaxed font-manrope">
-              Join us at upcoming FACE Awards events and become part of our global community celebrating excellence.
+              {ctaSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button 
@@ -395,7 +470,7 @@ const Gallery = () => {
                 }}
                 className="bg-face-white text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white border-4 border-face-white hover:border-face-white shadow-2xl text-xl font-bold py-6 px-12 rounded-full transform hover:scale-105 transition-all duration-300 font-manrope"
               >
-                Register for Next Event
+                {ctaPrimaryButton}
               </Button>
               <Button 
                 onClick={() => {
@@ -405,7 +480,7 @@ const Gallery = () => {
                 variant="outline"
                 className="border-4 border-face-white bg-transparent text-face-white hover:bg-face-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-6 px-12 rounded-full transform hover:scale-105 transition-all duration-300 font-manrope"
               >
-                View Current Nominees
+                {ctaSecondaryButton}
               </Button>
             </div>
           </div>

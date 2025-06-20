@@ -6,19 +6,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WinnerCard from '../awards/WinnerCard';
 import { usePastWinners, usePastWinnerYears } from '@/hooks/useApi';
+import { usePageContent } from '@/hooks/usePageContent';
+import { ContentRenderer, extractContent } from '@/lib/contentUtils';
 
 const PastWinnersSection = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
-
-  // Fetch available years
+  const { data: content, isLoading: contentLoading } = usePageContent('homepage', 'past_winners');
   const { data: yearsResponse, isLoading: yearsLoading } = usePastWinnerYears();
-  const availableYears = yearsResponse?.data || [];
-
-  // Fetch past winners for selected year
   const { data: winnersResponse, isLoading: winnersLoading, error: winnersError } = usePastWinners(
     selectedYear ? { year: parseInt(selectedYear) } : undefined
   );
+  
+  const contentData = content?.data?.content || {};
+  const availableYears = yearsResponse?.data || [];
   const pastWinners = winnersResponse?.data || [];
+
+  // Extract content
+  const title = extractContent(contentData, 'title', 'Past Winners');
+  const subtitle = extractContent(contentData, 'subtitle', 'Celebrating Excellence Through the Years');
+  const description = extractContent(contentData, 'content', 'Celebrating the remarkable individuals...');
+  const emptyMessage = extractContent(contentData, 'empty_state_message', 'Past winners will be featured here after our first awards ceremony.');
+  const buttonText = extractContent(contentData, 'button_text', 'View All Past Winners');
 
   // Set default year when years are loaded
   useEffect(() => {
@@ -29,6 +37,32 @@ const PastWinnersSection = () => {
     }
   }, [availableYears, selectedYear]);
 
+
+
+  if (contentLoading || yearsLoading) {
+    return (
+      <section className="section-padding bg-face-sky-blue/5" id="past-winners">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <div className="inline-block mb-3">
+              <img 
+                src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
+                alt="FACE Awards Logo" 
+                className="h-10 w-auto"
+              />
+            </div>
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3 mx-auto"></div>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-face-sky-blue" />
+          </div>
+        </div>
+      </section>
+    );
+  }
   // Loading state
   if (yearsLoading) {
     return (
@@ -54,6 +88,7 @@ const PastWinnersSection = () => {
   }
 
   // No years available
+  
   if (availableYears.length === 0) {
     return (
       <section className="section-padding bg-face-sky-blue/5" id="past-winners">
@@ -66,10 +101,8 @@ const PastWinnersSection = () => {
                 className="h-10 w-auto"
               />
             </div>
-            <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">Past Winners</h2>
-            <p className="text-lg text-face-grey/80 font-manrope">
-              Past winners will be featured here after our first awards ceremony.
-            </p>
+            <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">{title}</h2>
+            <p className="text-lg text-face-grey/80 font-manrope">{emptyMessage}</p>
           </div>
         </div>
       </section>
@@ -90,12 +123,10 @@ const PastWinnersSection = () => {
               className="h-10 w-auto"
             />
           </div>
-          <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">Past Winners</h2>
-          <p className="text-lg text-face-grey/80 font-manrope">
-            Celebrating the remarkable individuals and organizations who have previously received 
-            the FACE Awards for their outstanding contributions.
-          </p>
+          <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">{title}</h2>
+          <p className="text-lg text-face-grey/80 font-manrope">{description}</p>
         </div>
+
 
         <div className="mb-8">
           {/* Year selector - For mobile */}

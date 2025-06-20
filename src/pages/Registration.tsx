@@ -1,578 +1,503 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Award, Calendar, Mail, MapPin, Users, CheckCircle, Clock, Loader2, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, Users, Check, Trophy, ArrowRight, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useCreateRegistration } from '@/hooks/useApi';
+import { extractContent } from '@/lib/contentUtils';
 import { toast } from '@/components/ui/use-toast';
-import type { RegistrationData } from '@/lib/api';
+import { usePageContent } from '@/hooks/usePageContent';
+
+interface RegistrationFormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  organization: string;
+  country: string;
+  city: string;
+  dietary_requirements: string;
+  ticket_type: 'standard' | 'vip' | 'corporate';
+  event_date: string;
+}
 
 const Registration = () => {
-  const [formStep, setFormStep] = useState(1);
-  const [ticketType, setTicketType] = useState<'standard' | 'vip' | 'corporate'>('standard');
-  const [formData, setFormData] = useState<Partial<RegistrationData>>({});
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState<RegistrationFormData>({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    organization: '',
+    country: '',
+    city: '',
+    dietary_requirements: '',
+    ticket_type: 'standard',
+    event_date: '2024-11-15'
+  });
   const [registrationResult, setRegistrationResult] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Content API Hook
+  const { data: contentResponse, isLoading: contentLoading, error: contentError } = usePageContent('registration');
+  
+  // Registration mutation
   const createRegistrationMutation = useCreateRegistration();
+  
+  const pageContent = contentResponse?.data;
 
-  const handleNextStep = (e: React.FormEvent) => {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const formDataObj = new FormData(form);
-    
-    // Validate required fields
-    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'country', 'city'];
-    const missingFields = requiredFields.filter(field => !formDataObj.get(field));
-    
-    if (missingFields.length > 0) {
-      toast({
-        title: "Missing required fields",
-        description: "Please fill in all required fields before continuing.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Update form data
-    const newFormData: Partial<RegistrationData> = {
-      first_name: formDataObj.get('firstName') as string,
-      last_name: formDataObj.get('lastName') as string,
-      email: formDataObj.get('email') as string,
-      phone: formDataObj.get('phone') as string,
-      organization: formDataObj.get('organization') as string || undefined,
-      country: formDataObj.get('country') as string,
-      city: formDataObj.get('city') as string,
-      dietary_requirements: formDataObj.get('dietaryRequirements') as string || undefined,
-    };
-
-    setFormData(newFormData);
-    setFormStep(2);
-    window.scrollTo(0, 0);
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handlePrevStep = () => {
-    setFormStep(1);
-    window.scrollTo(0, 0);
+  const handleInputChange = (field: keyof RegistrationFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.first_name || !formData.last_name || !formData.email || !formData.phone || !formData.country || !formData.city) {
-      toast({
-        title: "Missing information",
-        description: "Please complete all required fields.",
-        variant: "destructive"
-      });
-      return;
+  const handleNext = () => {
+    if (currentStep < 3) {
+      setCurrentStep(prev => prev + 1);
     }
+  };
 
-    const registrationData: RegistrationData = {
-      ...formData as Required<Pick<RegistrationData, 'first_name' | 'last_name' | 'email' | 'phone' | 'country' | 'city'>>,
-      ticket_type: ticketType,
-      event_date: new Date('2024-11-15T19:00:00').toISOString(),
-      organization: formData.organization,
-      dietary_requirements: formData.dietary_requirements,
-    };
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
 
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
     try {
-      const response = await createRegistrationMutation.mutateAsync(registrationData);
-      setRegistrationResult(response.data);
-      setFormStep(3);
-      window.scrollTo(0, 0);
-      
-      toast({
-        title: "Registration successful!",
-        description: "Your registration has been confirmed. Check your email for details.",
-      });
+      const result = await createRegistrationMutation.mutateAsync(formData);
+      setRegistrationResult(result.data);
+      setCurrentStep(3);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || "Registration failed. Please try again.";
       toast({
-        title: "Registration failed",
+        title: "Registration Failed",
         description: errorMessage,
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const getTicketPrice = () => {
-    switch (ticketType) {
-      case 'standard':
-        return '$250';
-      case 'vip':
-        return '$450';
-      case 'corporate':
-        return '$1,800';
-      default:
-        return '$250';
-    }
+  const validateStep1 = () => {
+    return formData.first_name && formData.last_name && formData.email && formData.phone;
   };
+
+  const validateStep2 = () => {
+    return formData.country && formData.city && formData.ticket_type;
+  };
+
+  // Icon mapping function
+  const getIcon = (iconName: string) => {
+    const iconMap = {
+      calendar: Calendar,
+      'map-pin': MapPin,
+      users: Users
+    };
+    return iconMap[iconName as keyof typeof iconMap] || Calendar;
+  };
+
+  // Extract content with fallbacks
+  const heroTitle = pageContent?.hero?.find(item => item.key === 'main_title')?.content || 'Event <span class="text-white">Registration</span>';
+  const heroSubtitle = extractContent(pageContent?.hero, 'subtitle', 'Join us for a prestigious evening celebrating excellence and achievement from around the globe');
+  const heroBackgroundImage = extractContent(pageContent?.hero, 'background_image', 'https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop');
+
+  // Parse event badges from JSON content
+  let eventBadges = [
+    { icon: 'calendar', text: 'November 15, 2024' },
+    { icon: 'map-pin', text: 'New York City' },
+    { icon: 'users', text: 'Black Tie Event' }
+  ];
+  try {
+    const badgesContent = pageContent?.hero?.find(item => item.key === 'event_badges')?.content;
+    if (badgesContent) {
+      const parsed = JSON.parse(badgesContent);
+      if (Array.isArray(parsed)) {
+        eventBadges = parsed;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to parse event badges:', error);
+  }
+
+  const step1Title = extractContent(pageContent?.progress_steps, 'step_1_title', 'Personal Information');
+  const step2Title = extractContent(pageContent?.progress_steps, 'step_2_title', 'Ticket Selection');
+  const step3Title = extractContent(pageContent?.progress_steps, 'step_3_title', 'Confirmation');
+
+  const registrationCompleteTitle = extractContent(pageContent?.success_messages, 'registration_complete_title', 'Registration Complete!');
+  const registrationCompleteMessage = extractContent(pageContent?.success_messages, 'registration_complete_message', 'Thank you for registering for the FACE Awards ceremony. We\'ve sent a confirmation email with all the details.');
+  const yourReservationTitle = extractContent(pageContent?.success_messages, 'your_reservation_title', 'Your Reservation');
+  const arrivalInstruction = extractContent(pageContent?.success_messages, 'arrival_instruction', 'Please arrive 30 minutes early for registration');
+  const ticketTypeLabel = extractContent(pageContent?.success_messages, 'ticket_type_label', 'Ticket Type:');
+  const priceLabel = extractContent(pageContent?.success_messages, 'price_label', 'Price:');
+  const referenceLabel = extractContent(pageContent?.success_messages, 'reference_label', 'Reference #:');
+  const returnHomeButtonText = extractContent(pageContent?.success_messages, 'return_home_button_text', 'Return to Home');
+
+  const eventDetailsTitle = extractContent(pageContent?.event_details, 'section_title', 'Event Details');
+  const dateTimeTitle = extractContent(pageContent?.event_details, 'date_time_title', 'Date & Time');
+  const locationTitle = extractContent(pageContent?.event_details, 'location_title', 'Location');
+  const dressCodeTitle = extractContent(pageContent?.event_details, 'dress_code_title', 'Dress Code');
+  const dressCodeText = extractContent(pageContent?.event_details, 'dress_code_text', 'Black Tie / Formal Evening Wear');
+  const contactTitle = extractContent(pageContent?.event_details, 'contact_title', 'Contact');
+  const contactMessage = pageContent?.event_details?.find(item => item.key === 'contact_message')?.content || 'For any questions or assistance:<br><a href="mailto:events@faceawards.org" class="text-face-sky-blue hover:underline font-medium">events@faceawards.org</a>';
+
+  // Loading state
+  if (contentLoading) {
+    return (
+      <div className="min-h-screen bg-face-white">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-face-sky-blue mx-auto mb-4" />
+            <p className="text-xl text-face-grey/60 font-manrope">Loading registration...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-face-white">
       <Navbar />
       
-      {/* Enhanced Hero section matching other pages */}
-      <section className="relative py-32 bg-face-grey overflow-hidden">
-        {/* Background hero image with stronger overlay */}
-        <div className="absolute inset-0">
-          <img 
-            src="https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop"
-            alt="FACE Awards registration background"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-face-sky-blue/95 via-face-sky-blue-dark/95 to-face-grey/95"></div>
-        </div>
+      {/* Hero section */}
+      <section className="relative py-20 bg-gradient-to-br from-face-sky-blue via-face-sky-blue-dark to-face-grey">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: `url(${heroBackgroundImage})` }}
+        ></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-face-sky-blue/95 via-face-sky-blue-dark/95 to-face-grey/95"></div>
         
-        {/* Decorative elements with better visibility */}
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute top-20 left-10 w-32 h-32 border-4 border-white rounded-full animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-24 h-24 border-4 border-white transform rotate-45 animate-bounce"></div>
-          <div className="absolute bottom-40 left-20 w-16 h-16 bg-white rounded-full animate-pulse"></div>
-          <div className="absolute top-60 right-40 w-20 h-20 border-2 border-white transform rotate-12 animate-spin" style={{animationDuration: '8s'}}></div>
-        </div>
-        
-        <div className="relative container mx-auto px-4 z-10">
+        <div className="relative container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            {/* Icon with stronger FACE brand styling */}
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full mb-8 shadow-2xl">
-              <Award className="h-12 w-12 text-face-sky-blue" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-face-white rounded-full mb-8 shadow-2xl">
+              <img 
+                src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
+                alt="FACE Awards Logo" 
+                className="h-10 w-auto"
+              />
             </div>
-            
-            {/* Main heading with stronger contrast */}
-            <h1 className="text-6xl md:text-7xl font-serif font-bold mb-6 text-white">
-              Event <span className="text-white">Registration</span>
-            </h1>
-            
-            {/* Subtitle with stronger visibility */}
-            <p className="text-2xl text-white mb-8 font-semibold">
-              Join us for a prestigious evening celebrating excellence and achievement from around the globe
+            <h1 
+              className="text-4xl md:text-5xl font-clash font-bold mb-4 text-face-white"
+              dangerouslySetInnerHTML={{ __html: heroTitle }}
+            />
+            <p className="text-xl text-face-white/90 mb-12 font-manrope">
+              {heroSubtitle}
             </p>
             
-            {/* Stats with stronger contrast */}
-            <div className="flex flex-wrap justify-center gap-6 text-lg text-white">
-              <div className="flex items-center gap-3 bg-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-white/60">
-                <Calendar className="h-6 w-6 text-white" />
-                <span className="font-bold">November 15, 2024</span>
-              </div>
-              <div className="flex items-center gap-3 bg-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-white/60">
-                <MapPin className="h-6 w-6 text-white" />
-                <span className="font-bold">New York City</span>
-              </div>
-              <div className="flex items-center gap-3 bg-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-white/60">
-                <Users className="h-6 w-6 text-white" />
-                <span className="font-bold">Black Tie Event</span>
-              </div>
+            {/* Event badges */}
+            <div className="flex flex-wrap justify-center gap-6 text-lg text-face-white">
+              {eventBadges.map((badge, index) => {
+                const IconComponent = getIcon(badge.icon);
+                return (
+                  <div key={index} className="flex items-center gap-3 bg-face-white/30 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-face-white/40">
+                    <IconComponent className="h-6 w-6 text-face-white" />
+                    <span className="font-medium font-manrope">{badge.text}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Registration content */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            {/* Progress steps */}
-            <div className="mb-16">
-              <div className="flex justify-between">
-                <div className={`flex flex-col items-center ${formStep >= 1 ? 'text-face-sky-blue' : 'text-gray-400'}`}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${formStep >= 1 ? 'bg-face-sky-blue' : 'bg-gray-300'}`}>
-                    {formStep > 1 ? <CheckCircle className="h-6 w-6" /> : '1'}
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto">
+          {/* Progress Steps */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-8">
+              {[
+                { number: 1, title: step1Title },
+                { number: 2, title: step2Title },
+                { number: 3, title: step3Title }
+              ].map((step, index) => (
+                <div key={step.number} className="flex items-center">
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                    currentStep >= step.number 
+                      ? 'bg-face-sky-blue border-face-sky-blue text-face-white' 
+                      : 'border-face-grey/30 text-face-grey/50'
+                  }`}>
+                    {currentStep > step.number ? (
+                      <Check className="h-5 w-5" />
+                    ) : (
+                      <span className="font-bold">{step.number}</span>
+                    )}
                   </div>
-                  <span className="mt-3 text-sm font-medium">Personal Information</span>
+                  <span className={`ml-3 font-medium font-manrope ${
+                    currentStep >= step.number ? 'text-face-sky-blue' : 'text-face-grey/50'
+                  }`}>
+                    {step.title}
+                  </span>
+                  {index < 2 && (
+                    <div className={`hidden md:block w-24 h-0.5 ml-8 ${
+                      currentStep > step.number ? 'bg-face-sky-blue' : 'bg-face-grey/20'
+                    }`} />
+                  )}
                 </div>
-                <div className="flex-1 flex items-center mx-6">
-                  <div className={`h-2 w-full rounded-full ${formStep >= 2 ? 'bg-face-sky-blue' : 'bg-gray-200'}`}></div>
-                </div>
-                <div className={`flex flex-col items-center ${formStep >= 2 ? 'text-face-sky-blue' : 'text-gray-400'}`}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${formStep >= 2 ? 'bg-face-sky-blue' : 'bg-gray-300'}`}>
-                    {formStep > 2 ? <CheckCircle className="h-6 w-6" /> : '2'}
-                  </div>
-                  <span className="mt-3 text-sm font-medium">Ticket Selection</span>
-                </div>
-                <div className="flex-1 flex items-center mx-6">
-                  <div className={`h-2 w-full rounded-full ${formStep >= 3 ? 'bg-face-sky-blue' : 'bg-gray-200'}`}></div>
-                </div>
-                <div className={`flex flex-col items-center ${formStep >= 3 ? 'text-face-sky-blue' : 'text-gray-400'}`}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${formStep >= 3 ? 'bg-face-sky-blue' : 'bg-gray-300'}`}>
-                    {formStep >= 3 ? <CheckCircle className="h-6 w-6" /> : '3'}
-                  </div>
-                  <span className="mt-3 text-sm font-medium">Confirmation</span>
-                </div>
-              </div>
+              ))}
             </div>
+            <Progress value={(currentStep / 3) * 100} className="h-2 bg-face-grey/10" />
+          </div>
 
-            <div className="bg-white p-10 rounded-2xl shadow-2xl border border-face-sky-blue/10">
-              {formStep === 1 && (
-                <form onSubmit={handleNextStep}>
-                  <h2 className="text-3xl font-serif font-bold mb-6 text-face-grey">Personal Information</h2>
-                  <p className="text-gray-600 mb-10 text-lg">Please provide your details for the event registration.</p>
-                  
-                  <div className="grid md:grid-cols-2 gap-8 mb-10">
-                    <div className="space-y-3">
-                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name*</label>
-                      <input 
-                        id="firstName" 
-                        name="firstName"
-                        defaultValue={formData.first_name}
-                        placeholder="Enter your first name" 
-                        required 
-                        className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name*</label>
-                      <input 
-                        id="lastName" 
-                        name="lastName"
-                        defaultValue={formData.last_name}
-                        placeholder="Enter your last name" 
-                        required 
-                        className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address*</label>
-                      <input 
-                        id="email" 
-                        name="email"
-                        type="email" 
-                        defaultValue={formData.email}
-                        placeholder="Enter your email" 
-                        required 
-                        className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number*</label>
-                      <input 
-                        id="phone" 
-                        name="phone"
-                        defaultValue={formData.phone}
-                        placeholder="Enter your phone number" 
-                        required 
-                        className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
-                      />
-                    </div>
-                    <div className="space-y-3 md:col-span-2">
-                      <label htmlFor="organization" className="block text-sm font-medium text-gray-700">Organization / Company</label>
-                      <input 
-                        id="organization" 
-                        name="organization"
-                        defaultValue={formData.organization}
-                        placeholder="Enter your organization name" 
-                        className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <label htmlFor="country" className="block text-sm font-medium text-gray-700">Country*</label>
-                      <select 
-                        id="country" 
-                        name="country"
-                        defaultValue={formData.country}
-                        required 
-                        className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
-                      >
-                        <option value="">Select your country</option>
-                        <option value="United States">United States</option>
-                        <option value="United Kingdom">United Kingdom</option>
-                        <option value="Canada">Canada</option>
-                        <option value="Australia">Australia</option>
-                        <option value="Germany">Germany</option>
-                        <option value="France">France</option>
-                        <option value="Japan">Japan</option>
-                        <option value="Singapore">Singapore</option>
-                        <option value="Nigeria">Nigeria</option>
-                        <option value="South Africa">South Africa</option>
-                        <option value="Brazil">Brazil</option>
-                        <option value="Mexico">Mexico</option>
-                        <option value="India">India</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div className="space-y-3">
-                      <label htmlFor="city" className="block text-sm font-medium text-gray-700">City*</label>
-                      <input 
-                        id="city" 
-                        name="city"
-                        defaultValue={formData.city}
-                        placeholder="Enter your city" 
-                        required 
-                        className="w-full px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors"
-                      />
-                    </div>
-                    <div className="space-y-3 md:col-span-2">
-                      <label htmlFor="dietaryRequirements" className="block text-sm font-medium text-gray-700">Dietary Requirements or Allergies</label>
-                      <textarea 
-                        id="dietaryRequirements" 
-                        name="dietaryRequirements"
-                        defaultValue={formData.dietary_requirements}
-                        placeholder="Please specify any dietary requirements or allergies" 
-                        className="w-full min-h-[100px] px-4 py-3 border border-face-sky-blue/30 rounded-lg focus:ring-2 focus:ring-face-sky-blue focus:border-face-sky-blue transition-colors resize-vertical"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end">
-                    <button 
-                      type="submit"
-                      className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-white font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 shadow-lg"
-                    >
-                      Next Step
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {formStep === 2 && (
-                <div>
-                  <h2 className="text-3xl font-serif font-bold mb-6 text-face-grey">Ticket Selection</h2>
-                  <p className="text-gray-600 mb-10 text-lg">Choose your ticket type for the FACE Awards ceremony.</p>
-                  
-                  <div className="space-y-8 mb-10">
-                    <label className="text-xl font-medium text-face-grey">Select Ticket Type*</label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div 
-                        className={`relative border-2 rounded-2xl p-6 cursor-pointer transition-all duration-300 ${ticketType === 'standard' ? 'border-face-sky-blue bg-face-sky-blue/5 shadow-lg' : 'border-gray-200 hover:border-face-sky-blue/50'}`}
-                        onClick={() => setTicketType('standard')}
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-xl font-bold text-face-grey">Standard Attendance</span>
-                          <span className="text-3xl font-bold text-face-sky-blue mt-3">$250</span>
-                          <ul className="mt-6 text-sm text-gray-600 space-y-3">
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Ceremony attendance</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Welcome reception</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Dinner and refreshments</span>
-                            </li>
-                          </ul>
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Registration Form */}
+            <div className="md:col-span-2">
+              <Card className="border-face-sky-blue/20 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="font-clash text-face-grey">
+                    {currentStep === 1 && step1Title}
+                    {currentStep === 2 && step2Title}
+                    {currentStep === 3 && step3Title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Step 1: Personal Information */}
+                  {currentStep === 1 && (
+                    <>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="first_name" className="font-manrope">First Name *</Label>
+                          <Input
+                            id="first_name"
+                            value={formData.first_name}
+                            onChange={(e) => handleInputChange('first_name', e.target.value)}
+                            className="border-face-sky-blue/30 focus:border-face-sky-blue font-manrope"
+                            required
+                          />
                         </div>
-                        {ticketType === 'standard' && (
-                          <div className="absolute top-4 right-4">
-                            <div className="bg-face-sky-blue rounded-full p-2">
-                              <CheckCircle className="h-5 w-5 text-white" />
-                            </div>
-                          </div>
-                        )}
+                        <div>
+                          <Label htmlFor="last_name" className="font-manrope">Last Name *</Label>
+                          <Input
+                            id="last_name"
+                            value={formData.last_name}
+                            onChange={(e) => handleInputChange('last_name', e.target.value)}
+                            className="border-face-sky-blue/30 focus:border-face-sky-blue font-manrope"
+                            required
+                          />
+                        </div>
                       </div>
                       
-                      <div 
-                        className={`relative border-2 rounded-2xl p-6 cursor-pointer transition-all duration-300 ${ticketType === 'vip' ? 'border-face-sky-blue bg-face-sky-blue/5 shadow-lg' : 'border-gray-200 hover:border-face-sky-blue/50'}`}
-                        onClick={() => setTicketType('vip')}
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-xl font-bold text-face-grey">VIP Experience</span>
-                          <span className="text-3xl font-bold text-face-sky-blue mt-3">$450</span>
-                          <ul className="mt-6 text-sm text-gray-600 space-y-3">
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Premium seating</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Exclusive VIP reception</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Meet & greet with awardees</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Complimentary gift bag</span>
-                            </li>
-                          </ul>
-                        </div>
-                        {ticketType === 'vip' && (
-                          <div className="absolute top-4 right-4">
-                            <div className="bg-face-sky-blue rounded-full p-2">
-                              <CheckCircle className="h-5 w-5 text-white" />
-                            </div>
-                          </div>
-                        )}
+                      <div>
+                        <Label htmlFor="email" className="font-manrope">Email Address *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          className="border-face-sky-blue/30 focus:border-face-sky-blue font-manrope"
+                          required
+                        />
                       </div>
                       
-                      <div 
-                        className={`relative border-2 rounded-2xl p-6 cursor-pointer transition-all duration-300 ${ticketType === 'corporate' ? 'border-face-sky-blue bg-face-sky-blue/5 shadow-lg' : 'border-gray-200 hover:border-face-sky-blue/50'}`}
-                        onClick={() => setTicketType('corporate')}
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-xl font-bold text-face-grey">Corporate Table</span>
-                          <span className="text-3xl font-bold text-face-sky-blue mt-3">$1,800</span>
-                          <ul className="mt-6 text-sm text-gray-600 space-y-3">
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Reserved table for 8 guests</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Premium location seating</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>Company recognition in program</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                              <span>VIP benefits for all guests</span>
-                            </li>
-                          </ul>
-                        </div>
-                        {ticketType === 'corporate' && (
-                          <div className="absolute top-4 right-4">
-                            <div className="bg-face-sky-blue rounded-full p-2">
-                              <CheckCircle className="h-5 w-5 text-white" />
-                            </div>
-                          </div>
-                        )}
+                      <div>
+                        <Label htmlFor="phone" className="font-manrope">Phone Number *</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          className="border-face-sky-blue/30 focus:border-face-sky-blue font-manrope"
+                          required
+                        />
                       </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-3 pt-8">
-                      <input type="checkbox" id="terms" required className="mt-1" />
-                      <label htmlFor="terms" className="text-sm text-gray-700">
-                        I agree to the <a href="#" className="text-face-sky-blue hover:underline font-medium">terms and conditions</a> and understand that tickets are non-refundable but transferable up to 14 days before the event.
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <button 
-                      onClick={handlePrevStep}
-                      className="border-2 border-face-sky-blue text-face-sky-blue hover:bg-face-sky-blue hover:text-white font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300"
-                    >
-                      Previous Step
-                    </button>
-                    <button 
-                      onClick={handleSubmit}
-                      disabled={createRegistrationMutation.isPending}
-                      className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-white font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:transform-none"
-                    >
-                      {createRegistrationMutation.isPending ? (
-                        <span className="flex items-center">
-                          <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-                          Processing...
-                        </span>
-                      ) : (
-                        'Complete Registration'
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
+                      
+                      <div>
+                        <Label htmlFor="organization" className="font-manrope">Organization</Label>
+                        <Input
+                          id="organization"
+                          value={formData.organization}
+                          onChange={(e) => handleInputChange('organization', e.target.value)}
+                          className="border-face-sky-blue/30 focus:border-face-sky-blue font-manrope"
+                        />
+                      </div>
+                      
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={handleNext}
+                          disabled={!validateStep1()}
+                          className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-face-white font-manrope"
+                        >
+                          Next <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </>
+                  )}
 
-              {formStep === 3 && registrationResult && (
-                <div className="text-center py-12">
-                  <div className="mb-8 inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100">
-                    <CheckCircle className="h-10 w-10 text-green-600" />
-                  </div>
-                  <h2 className="text-3xl font-serif font-bold mb-6 text-face-grey">Registration Complete!</h2>
-                  <p className="text-gray-600 mb-10 max-w-md mx-auto text-lg">
-                    Thank you for registering for the FACE Awards ceremony. We've sent a confirmation email with all the details.
-                  </p>
-                  
-                  <div className="max-w-md mx-auto mb-10 bg-face-sky-blue/5 border border-face-sky-blue/20 rounded-2xl p-8">
-                    <h3 className="text-xl font-bold mb-6 text-face-grey">Your Reservation</h3>
-                    <div className="space-y-6 text-left">
-                      <div className="flex items-center gap-4">
-                        <Clock className="h-6 w-6 text-face-sky-blue" />
-                        <p className="text-sm text-gray-500">
-                          Please arrive 30 minutes early for registration
-                        </p>
-                      </div>
-                      <div className="border-t border-gray-200 pt-4">
-                        <div className="flex justify-between mb-2">
-                          <span>Ticket Type:</span>
-                          <span className="font-medium">
-                            {ticketType === 'standard' ? 'Standard Attendance' : 
-                             ticketType === 'vip' ? 'VIP Experience' : 'Corporate Table'}
-                          </span>
+                  {/* Step 2: Ticket Selection */}
+                  {currentStep === 2 && (
+                    <>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="country" className="font-manrope">Country *</Label>
+                          <Input
+                            id="country"
+                            value={formData.country}
+                            onChange={(e) => handleInputChange('country', e.target.value)}
+                            className="border-face-sky-blue/30 focus:border-face-sky-blue font-manrope"
+                            required
+                          />
                         </div>
-                        <div className="flex justify-between">
-                          <span>Price:</span>
-                          <span className="font-bold text-face-sky-blue text-lg">${registrationResult.amount}</span>
+                        <div>
+                          <Label htmlFor="city" className="font-manrope">City *</Label>
+                          <Input
+                            id="city"
+                            value={formData.city}
+                            onChange={(e) => handleInputChange('city', e.target.value)}
+                            className="border-face-sky-blue/30 focus:border-face-sky-blue font-manrope"
+                            required
+                          />
                         </div>
                       </div>
-                      <div className="text-center text-sm text-gray-500 bg-gray-100 py-3 rounded-lg">
-                        Reference #: {registrationResult.reference_number}
+                      
+                      <div>
+                        <Label htmlFor="ticket_type" className="font-manrope">Ticket Type *</Label>
+                        <Select value={formData.ticket_type} onValueChange={(value) => handleInputChange('ticket_type', value)}>
+                          <SelectTrigger className="border-face-sky-blue/30 focus:border-face-sky-blue font-manrope">
+                            <SelectValue placeholder="Select ticket type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="standard">Standard - $150</SelectItem>
+                            <SelectItem value="vip">VIP - $300</SelectItem>
+                            <SelectItem value="corporate">Corporate Table - $1,500</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
+                      
+                      <div>
+                        <Label htmlFor="dietary_requirements" className="font-manrope">Dietary Requirements</Label>
+                        <Textarea
+                          id="dietary_requirements"
+                          value={formData.dietary_requirements}
+                          onChange={(e) => handleInputChange('dietary_requirements', e.target.value)}
+                          className="border-face-sky-blue/30 focus:border-face-sky-blue font-manrope"
+                          placeholder="Please specify any dietary requirements or allergies"
+                        />
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          onClick={handlePrevious}
+                          variant="outline"
+                          className="border-face-sky-blue text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white font-manrope"
+                        >
+                          Previous
+                        </Button>
+                        <Button 
+                          onClick={handleSubmit}
+                          disabled={!validateStep2() || isSubmitting}
+                          className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-face-white font-manrope"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Registering...
+                            </>
+                          ) : (
+                            <>
+                              Complete Registration <ArrowRight className="ml-2 h-4 w-4" />
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Step 3: Confirmation */}
+                  {currentStep === 3 && registrationResult && (
+                    <div className="text-center space-y-6">
+                      <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
+                        <CheckCircle className="h-8 w-8 text-green-600" />
+                      </div>
+                      
+                      <h2 className="text-2xl font-clash font-bold text-face-grey">{registrationCompleteTitle}</h2>
+                      <p className="text-face-grey/70 font-manrope">{registrationCompleteMessage}</p>
+                      
+                      <div className="bg-face-sky-blue/5 border border-face-sky-blue/20 rounded-lg p-6 text-left">
+                        <h3 className="font-clash font-bold text-face-grey mb-4">{yourReservationTitle}</h3>
+                        <div className="space-y-2 text-sm font-manrope">
+                          <div className="flex justify-between">
+                            <span className="text-face-grey/60">{ticketTypeLabel}</span>
+                            <span className="font-medium text-face-grey">{registrationResult.ticket_type}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-face-grey/60">{priceLabel}</span>
+                            <span className="font-medium text-face-grey">${registrationResult.amount}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-face-grey/60">{referenceLabel}</span>
+                            <span className="font-medium text-face-sky-blue">{registrationResult.reference_number}</span>
+                          </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-face-sky-blue/20">
+                          <p className="text-sm text-face-grey/70 font-manrope">{arrivalInstruction}</p>
+                        </div>
+                      </div>
+                      
+                      <Button 
+                        onClick={() => {
+                          navigate('/');
+                          handleScrollToTop();
+                        }}
+                        className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-face-white font-manrope"
+                      >
+                        {returnHomeButtonText}
+                      </Button>
                     </div>
-                  </div>
-                  
-                  <button 
-                    onClick={() => window.location.href = '/'}
-                    className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-white font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 shadow-lg"
-                  >
-                    Return to Home
-                  </button>
-                </div>
-              )}
+                  )}
+                </CardContent>
+              </Card>
             </div>
-            
-            {/* Event details sidebar - only on step 1 and 2 */}
-            {formStep < 3 && (
-              <div className="mt-16">
-                <h3 className="text-2xl font-serif font-bold mb-8 text-face-grey">Event Details</h3>
-                <div className="bg-white rounded-2xl shadow-xl p-8 border border-face-sky-blue/10">
-                  <div className="space-y-8">
-                    <div className="flex items-start gap-4 p-4 bg-face-sky-blue/5 rounded-lg">
-                      <Calendar className="h-8 w-8 text-face-sky-blue mt-1 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-bold text-lg text-face-grey">Date & Time</h4>
-                        <p className="text-gray-600">
-                          November 15, 2024<br />
-                          7:00 PM - 11:00 PM
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-4 p-4 bg-face-sky-blue/5 rounded-lg">
-                      <MapPin className="h-8 w-8 text-face-sky-blue mt-1 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-bold text-lg text-face-grey">Location</h4>
-                        <p className="text-gray-600">
-                         
-                          3120 Southwest freeway 1st floor<br />
-                         2003 Houston TX 77098<br />
-                        
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-4 p-4 bg-face-sky-blue/5 rounded-lg">
-                      <Users className="h-8 w-8 text-face-sky-blue mt-1 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-bold text-lg text-face-grey">Dress Code</h4>
-                        <p className="text-gray-600">
-                          Black Tie / Formal Evening Wear
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-4 p-4 bg-face-sky-blue/5 rounded-lg">
-                      <Mail className="h-8 w-8 text-face-sky-blue mt-1 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-bold text-lg text-face-grey">Contact</h4>
-                        <p className="text-gray-600">
-                          For any questions or assistance:<br />
-                          <a href="mailto:events@faceawards.org" className="text-face-sky-blue hover:underline font-medium">
-                            events@faceawards.org
-                          </a>
-                        </p>
-                      </div>
-                    </div>
+
+            {/* Event Details Sidebar */}
+            <div className="md:col-span-1">
+              <Card className="border-face-sky-blue/20 shadow-lg sticky top-8">
+                <CardHeader>
+                  <CardTitle className="font-clash text-face-grey">{eventDetailsTitle}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h4 className="font-clash font-semibold text-face-grey mb-2">{dateTimeTitle}</h4>
+                    <p className="text-face-grey/70 font-manrope">November 15, 2024<br />7:00 PM - 11:00 PM</p>
                   </div>
-                </div>
-              </div>
-            )}
+                  
+                  <div>
+                    <h4 className="font-clash font-semibold text-face-grey mb-2">{locationTitle}</h4>
+                    <p className="text-face-grey/70 font-manrope">Grand Ballroom<br />The Plaza Hotel<br />New York City, NY</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-clash font-semibold text-face-grey mb-2">{dressCodeTitle}</h4>
+                    <p className="text-face-grey/70 font-manrope">{dressCodeText}</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-clash font-semibold text-face-grey mb-2">{contactTitle}</h4>
+                    <p 
+                      className="text-face-grey/70 text-sm font-manrope"
+                      dangerouslySetInnerHTML={{ __html: contactMessage }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
       
       <Footer />
     </div>

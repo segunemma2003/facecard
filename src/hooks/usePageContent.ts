@@ -17,6 +17,14 @@ export const usePageContent = (page: string, section?: string, key?: string) => 
   });
 };
 
+export const useGlobalSettings = () => {
+  return useQuery({
+    queryKey: ['global-settings'],
+    queryFn: () => apiClient.getAllPageContent({ page: 'global_settings' }),
+    staleTime: 10 * 60 * 1000,
+  });
+};
+
 export const useAllPageContent = () => {
   return useQuery({
     queryKey: ['all-page-content'],

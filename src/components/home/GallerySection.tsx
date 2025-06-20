@@ -3,20 +3,25 @@ import { Award, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GalleryCard from '../gallery/GalleryCard';
 import { useGalleryEvents } from '@/hooks/useApi';
+import { usePageContent } from '@/hooks/usePageContent';
+import { ContentRenderer, extractContent } from '@/lib/contentUtils';
 
 const GallerySection = () => {
-  // Use your API hook - fetch featured events only for homepage
-  const { data: galleryResponse, isLoading, error } = useGalleryEvents({ 
-    featured_only: true 
-  });
+  const { data: galleryContent, isLoading: contentLoading } = usePageContent('homepage', 'gallery_section');
+  const { data: galleryResponse, isLoading, error } = useGalleryEvents({ featured_only: true });
   
+  const galleryData = galleryContent?.data?.content || {};
   const galleryEvents = galleryResponse?.data || [];
-  
-  // Take only the first 4 events for the homepage display
   const displayEvents = galleryEvents.slice(0, 4);
 
-  // Loading state
-  if (isLoading) {
+  // Extract content
+  const title = extractContent(galleryData, 'title', 'Event Gallery');
+  const subtitle = extractContent(galleryData, 'subtitle', 'Moments from Our Ceremonies');
+  const description = extractContent(galleryData, 'content', 'Explore moments from our past ceremonies...');
+  const emptyMessage = extractContent(galleryData, 'empty_state_message', 'Gallery events will be available soon.');
+  const buttonText = extractContent(galleryData, 'button_text', 'View Complete Gallery');
+
+  if (contentLoading || isLoading) {
     return (
       <section className="section-padding bg-brand-white" id="gallery">
         <div className="container mx-auto px-4">
@@ -28,8 +33,10 @@ const GallerySection = () => {
                 className="h-10 w-auto"
               />
             </div>
-            <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">Event Gallery</h2>
-            <p className="text-lg text-face-grey/80 font-manrope">Loading gallery events...</p>
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3 mx-auto"></div>
+            </div>
           </div>
           <div className="flex justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-face-sky-blue" />
@@ -39,7 +46,6 @@ const GallerySection = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <section className="section-padding bg-brand-white" id="gallery">
@@ -52,15 +58,14 @@ const GallerySection = () => {
                 className="h-10 w-auto"
               />
             </div>
-            <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">Event Gallery</h2>
-            <p className="text-lg text-red-600 font-manrope">Unable to load gallery events. Please try again later.</p>
+            <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">{title}</h2>
+            <p className="text-lg text-red-600 font-manrope">Unable to load gallery events.</p>
           </div>
         </div>
       </section>
     );
   }
 
-  // No events state
   if (displayEvents.length === 0) {
     return (
       <section className="section-padding bg-brand-white" id="gallery">
@@ -73,10 +78,8 @@ const GallerySection = () => {
                 className="h-10 w-auto"
               />
             </div>
-            <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">Event Gallery</h2>
-            <p className="text-lg text-face-grey/80 font-manrope">
-              Gallery events will be available soon. Check back later for photos from our ceremonies and events.
-            </p>
+            <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">{title}</h2>
+            <p className="text-lg text-face-grey/80 font-manrope">{emptyMessage}</p>
           </div>
         </div>
       </section>
@@ -94,10 +97,8 @@ const GallerySection = () => {
               className="h-10 w-auto"
             />
           </div>
-          <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">Event Gallery</h2>
-          <p className="text-lg text-face-grey/80 font-manrope">
-            Explore moments from our past ceremonies and events that celebrate excellence and achievement across the globe.
-          </p>
+          <h2 className="text-3xl md:text-4xl font-clash font-bold mb-4 text-face-grey">{title}</h2>
+          <p className="text-lg text-face-grey/80 font-manrope">{description}</p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -118,18 +119,9 @@ const GallerySection = () => {
 
         <div className="text-center mt-12">
           <Button asChild className="bg-face-sky-blue hover:bg-face-grey text-face-white font-manrope">
-            <Link to="/gallery">View Complete Gallery</Link>
+            <Link to="/gallery">{buttonText}</Link>
           </Button>
         </div>
-
-        {/* Show total events count if there are more */}
-        {galleryEvents.length > 4 && (
-          <div className="text-center mt-6">
-            <p className="text-sm text-face-grey/60 font-manrope">
-              Showing {displayEvents.length} of {galleryEvents.length} featured events
-            </p>
-          </div>
-        )}
       </div>
     </section>
   );
