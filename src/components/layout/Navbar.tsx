@@ -84,7 +84,8 @@ const Navbar = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {['gallery', 'approach', 'about', 'contact'].map((item) => (
+            {/* Updated navigation items to include 'projects' */}
+            {['projects', 'gallery', 'approach', 'about', 'contact'].map((item) => (
               <button 
                 key={item}
                 onClick={() => handleNavigation(`/${item}`)} 
@@ -92,7 +93,9 @@ const Navbar = () => {
                   isScrolled ? 'text-face-grey hover:text-face-sky-blue' : 'text-face-white hover:text-face-sky-blue-light'
                 }`}
               >
-                {item === 'approach' ? 'Our Approach' : item}
+                {item === 'approach' ? 'Our Approach' : 
+                 item === 'projects' ? 'Our Projects' : 
+                 item}
               </button>
             ))}
             <Button 
@@ -120,7 +123,7 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Mobile Menu with brand styling */}
+        {/* Mobile Menu with brand styling - Updated to include Our Projects */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-face-white/95 backdrop-blur-md mt-4 py-6 px-4 rounded-xl shadow-xl border border-face-sky-blue/20 animate-fade-in">
             <div className="flex flex-col space-y-4">
@@ -129,6 +132,7 @@ const Navbar = () => {
                 { title: 'Current Nominees', path: '/nominees' },
                 { title: 'Categories', path: '/categories' },
                 { title: 'Past Winners', path: '/past-winners' },
+                { title: 'Our Projects', path: '/projects' },
                 { title: 'Gallery', path: '/gallery' },
                 { title: 'Our Approach', path: '/approach' },
                 { title: 'About', path: '/about' },
