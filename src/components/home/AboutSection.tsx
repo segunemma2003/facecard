@@ -166,7 +166,8 @@ const AboutSection = () => {
           <div className="relative z-10 rounded-lg overflow-hidden shadow-xl animate-scale-up">
             <img 
               src={extractContent(aboutData, 'hero_image', 'https://images.unsplash.com/photo-1540575467063-178a50c2df87')} 
-              alt={JSON.parse(aboutData.hero_image?.meta || '{}').alt || 'FACE Awards Ceremony'} 
+              // alt={JSON.parse(aboutData.hero_image?.meta || '{}').alt || 'FACE Awards Ceremony'} 
+              alt={extractContent(aboutData, 'hero_image', 'https://images.unsplash.com/photo-1540575467063-178a50c2df87')} 
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.src = extractContent(aboutData, 'hero_image_fallback', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622');

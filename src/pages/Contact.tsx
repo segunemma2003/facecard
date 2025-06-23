@@ -2,16 +2,45 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
-import { extractContent } from '@/lib/contentUtils';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
-import { useGlobalSettings, usePageContent } from '@/hooks/usePageContent';
 
+// Custom hook for page content with better error handling (same as About page)
+const usePageContent = (page: string, section?: string, key?: string) => {
+  return useQuery({
+    queryKey: ['page-content', page, section, key],
+    queryFn: async () => {
+      try {
+        console.log(`Fetching content for: page=${page}, section=${section}, key=${key}`);
+        
+        if (key && section) {
+          const result = await apiClient.getSpecificContent(page, section, key);
+          console.log(`API Response for ${page}/${section}/${key}:`, result);
+          return result;
+        } else if (section) {
+          const result = await apiClient.getPageSectionContent(page, section);
+          console.log(`API Response for ${page}/${section}:`, result);
+          return result;
+        } else {
+          const result = await apiClient.getPageContent(page);
+          console.log(`API Response for ${page}:`, result);
+          return result;
+        }
+      } catch (error) {
+        console.error(`API Error for ${page}/${section}/${key}:`, error);
+        throw error;
+      }
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: 2,
+    retryDelay: 1000,
+  });
+};
 
 const Contact = () => {
   const navigate = useNavigate();
@@ -24,52 +53,210 @@ const Contact = () => {
     message: ''
   });
 
-  // Fetch content from API
-  const { data: heroContent } = usePageContent('contact', 'hero');
-  const { data: formContent } = usePageContent('contact', 'contact_form');
-  const { data: contactInfoContent } = usePageContent('contact', 'contact_information');
-  const { data: formMessages } = usePageContent('contact', 'form_messages');
-  const { data: mapContent } = usePageContent('contact', 'map_section');
-  const { data: faqContent } = usePageContent('contact', 'faq_cta');
-  const { data: globalSettings } = useGlobalSettings();
+  // Fetch contact page content
+  const { 
+    data: heroContent, 
+    isLoading: heroLoading, 
+    error: heroError 
+  } = usePageContent('contact', 'hero');
+  
+  const { 
+    data: formContent, 
+    isLoading: formLoading, 
+    error: formError 
+  } = usePageContent('contact', 'contact_form');
+  
+  const { 
+    data: contactInfoContent, 
+    isLoading: contactInfoLoading, 
+    error: contactInfoError 
+  } = usePageContent('contact', 'contact_information');
+  
+  const { 
+    data: formMessages, 
+    isLoading: formMessagesLoading, 
+    error: formMessagesError 
+  } = usePageContent('contact', 'form_messages');
+  
+  const { 
+    data: mapContent, 
+    isLoading: mapLoading, 
+    error: mapError 
+  } = usePageContent('contact', 'map_section');
+  
+  const { 
+    data: faqContent, 
+    isLoading: faqLoading, 
+    error: faqError 
+  } = usePageContent('contact', 'faq_cta');
 
-  // Content extraction helper
-  const getContent = (source: any, key: string, fallback: string = '', options?: any) => {
-    if (!source?.data?.data) return fallback;
-    return extractContent(source.data.data, key, fallback, options);
-  };
+  // Fetch global settings
+  const { 
+    data: globalSettings, 
+    isLoading: globalLoading, 
+    error: globalError 
+  } = usePageContent('global_settings');
 
-  // Parse stats badges from JSON
-  const getStatsBadges = () => {
-    try {
-      const statsContent = heroContent?.data?.data?.stats_badges?.content;
-      if (statsContent) {
-        const stats = JSON.parse(statsContent);
-        return stats.map((stat: any) => ({
-          icon: getIconComponent(stat.icon),
-          text: stat.text
-        }));
+  // Debug: Log all data states
+  React.useEffect(() => {
+    console.log('Contact Component render - Data states:', {
+      heroContent,
+      formContent,
+      contactInfoContent,
+      formMessages,
+      mapContent,
+      faqContent,
+      globalSettings,
+      errors: {
+        heroError,
+        formError,
+        contactInfoError,
+        formMessagesError,
+        mapError,
+        faqError,
+        globalError
       }
+    });
+  }, [heroContent, formContent, contactInfoContent, formMessages, mapContent, faqContent, globalSettings]);
+
+  // Check if any critical data is still loading
+  const isLoading = heroLoading || formLoading || contactInfoLoading || formMessagesLoading || mapLoading || faqLoading || globalLoading;
+  const hasErrors = heroError || formError || contactInfoError || formMessagesError || mapError || faqError || globalError;
+
+  // Content extraction helper (same as About page)
+  const getContent = (source: any, key: string, fallback: string = '', options?: any) => {
+    try {
+      const contentData = source?.data?.content?.[key];
+      
+      if (!contentData) {
+        console.warn(`No data found for key: ${key}, using fallback: ${fallback}`);
+        return fallback;
+      }
+      
+      let result = contentData.content;
+      
+      if (contentData.type === 'html' && typeof result === 'string') {
+        if (options?.stripHTML) {
+          result = result.replace(/<[^>]*>/g, '');
+        }
+      }
+      
+      console.log(`Extracted content for ${key}:`, result);
+      return result || fallback;
     } catch (error) {
-      console.error('Failed to parse stats badges:', error);
+      console.error(`Error extracting content for ${key}:`, error);
+      return fallback;
     }
-    
-    // Fallback stats
-    return [
-      { icon: Clock, text: '24-48 Hour Response' },
-      { icon: Phone, text: 'Global Support' },
-      { icon: MapPin, text: 'Worldwide' }
-    ];
   };
 
+  // Parse JSON content (same as About page)
+  const parseJsonContent = (source: any, key: string, fallback: any[] = []) => {
+    try {
+      console.log(`Parsing content for key: ${key}`, source);
+      const contentData = source?.data?.content?.[key];
+      
+      if (!contentData) {
+        console.warn(`No content found for key: ${key}, using fallback`);
+        return fallback;
+      }
+      
+      let content = contentData.content;
+      
+      if (Array.isArray(content) || typeof content === 'object') {
+        console.log(`Successfully extracted ${contentData.type} content for ${key}:`, content);
+        return content;
+      }
+      
+      if (typeof content === 'string' && contentData.type === 'json') {
+        const parsed = JSON.parse(content);
+        console.log(`Successfully parsed JSON for ${key}:`, parsed);
+        return parsed;
+      }
+      
+      console.warn(`Content for ${key} is not in expected format, using fallback`);
+      return fallback;
+    } catch (error) {
+      console.error(`Failed to parse content for key: ${key}`, error);
+      return fallback;
+    }
+  };
+
+  // Get global settings content
+  const getGlobalContent = (section: string, key: string, fallback: string = '') => {
+    try {
+      const contentData = globalSettings?.data?.content?.[section]?.[key] || 
+                         globalSettings?.data?.content?.[key];
+      
+      if (!contentData) {
+        console.warn(`No global data found for ${section}/${key}, using fallback: ${fallback}`);
+        return fallback;
+      }
+      
+      let result = contentData.content || contentData;
+      console.log(`Extracted global content for ${section}/${key}:`, result);
+      return result || fallback;
+    } catch (error) {
+      console.error(`Error extracting global content for ${section}/${key}:`, error);
+      return fallback;
+    }
+  };
+
+  // Get icon component
   const getIconComponent = (iconName: string) => {
     const iconMap: { [key: string]: any } = {
       clock: Clock,
       phone: Phone,
       'map-pin': MapPin
     };
-    return iconMap[iconName] || Clock;
+    return iconMap[iconName.toLowerCase()] || Clock;
   };
+
+  // Show loading state (same as About page)
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading page content...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state (same as About page)
+  if (hasErrors) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-red-500 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Failed to Load Content</h2>
+          <p className="text-gray-600 mb-4">There was an error loading the page content from the server.</p>
+          <div className="text-left bg-gray-100 p-4 rounded-lg mb-4">
+            <h3 className="font-semibold mb-2">Error Details:</h3>
+            <ul className="text-sm text-gray-700 space-y-1">
+              {heroError && <li>• Hero section: {heroError.message}</li>}
+              {formError && <li>• Form section: {formError.message}</li>}
+              {contactInfoError && <li>• Contact info: {contactInfoError.message}</li>}
+              {formMessagesError && <li>• Form messages: {formMessagesError.message}</li>}
+              {mapError && <li>• Map section: {mapError.message}</li>}
+              {faqError && <li>• FAQ section: {faqError.message}</li>}
+              {globalError && <li>• Global settings: {globalError.message}</li>}
+            </ul>
+          </div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -86,7 +273,6 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.subject || !formData.message) {
       toast({
         title: getContent(formMessages, 'validation_error_title', 'Please fill in all fields'),
@@ -99,7 +285,6 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Using Formspree to handle form submission
       const response = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
         method: 'POST',
         headers: {
@@ -124,7 +309,6 @@ const Contact = () => {
         description: getContent(formMessages, 'success_message', "Thank you for contacting us. We'll get back to you within 24-48 hours."),
       });
 
-      // Reset form
       setFormData({
         firstName: '',
         lastName: '',
@@ -144,30 +328,28 @@ const Contact = () => {
     }
   };
 
-  // Get dynamic content
-  const mainTitle = getContent(heroContent, 'main_title', 'Get in <span class="text-face-sky-blue-light">Touch</span>');
-  const subtitle = getContent(heroContent, 'subtitle', "Have questions about the FACE Awards? We're here to help you with any inquiries");
-  const backgroundImage = getContent(heroContent, 'background_image', 'https://images.pexels.com/photos/5668858/pexels-photo-5668858.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop');
-  
-  const statsBadges = getStatsBadges();
+  // Get dynamic content with fallbacks
+  const statsBadges = parseJsonContent(heroContent, 'stats_badges', [
+    { icon: 'clock', text: '24-48 Hour Response' },
+    { icon: 'phone', text: 'Global Support' },
+    { icon: 'map-pin', text: 'Worldwide' }
+  ]);
 
   return (
     <div className="min-h-screen bg-face-white">
       <Navbar />
       
-      {/* Enhanced Hero Section */}
+      {/* Hero Section */}
       <section className="relative py-32 bg-face-grey overflow-hidden">
-        {/* Background hero image with stronger overlay */}
         <div className="absolute inset-0">
           <img 
-            src={backgroundImage}
+            src={getContent(heroContent, 'background_image', 'https://images.pexels.com/photos/5668858/pexels-photo-5668858.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop')}
             alt="Professional contact and communication background"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-face-sky-blue/95 via-face-sky-blue-dark/95 to-face-grey/95"></div>
         </div>
         
-        {/* Decorative elements */}
         <div className="absolute inset-0 opacity-40">
           <div className="absolute top-20 left-10 w-32 h-32 border-4 border-face-white rounded-full animate-pulse"></div>
           <div className="absolute top-40 right-20 w-24 h-24 border-4 border-face-white transform rotate-45 animate-bounce"></div>
@@ -177,39 +359,35 @@ const Contact = () => {
         
         <div className="relative container mx-auto px-4 z-10">
           <div className="max-w-4xl mx-auto text-center">
-            {/* FACE Logo */}
             <div className="inline-flex items-center justify-center w-24 h-24 bg-face-white rounded-full mb-8 shadow-2xl">
-              <img 
-                src="/lovable-uploads/345fadbd-8107-48e8-81b7-5e9b634511d3.png" 
-                alt="FACE Awards Logo" 
-                className="h-12 w-auto"
-              />
+              <Mail className="h-12 w-12 text-face-sky-blue" />
             </div>
             
-            {/* Main heading */}
             <h1 
-              className="text-6xl md:text-7xl font-clash font-bold mb-6 text-face-white"
-              dangerouslySetInnerHTML={{ __html: mainTitle }}
+              className="text-6xl md:text-7xl font-serif font-bold mb-6 text-face-white"
+              dangerouslySetInnerHTML={{
+                __html: getContent(heroContent, 'main_title', 'Get in <span class="text-face-sky-blue-light">Touch</span>')
+              }}
             />
             
-            {/* Subtitle */}
-            <p className="text-2xl text-face-white mb-8 font-semibold font-manrope">
-              {subtitle}
+            <p className="text-2xl text-face-white mb-8 font-semibold">
+              {getContent(heroContent, 'subtitle', "Have questions about the FACE Awards? We're here to help you with any inquiries")}
             </p>
             
-            {/* Stats */}
             <div className="flex flex-wrap justify-center gap-6 text-lg text-face-white">
-              {statsBadges.map((badge, index) => (
-                <div key={index} className="flex items-center gap-3 bg-face-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-face-white/60 hover:bg-face-white/50 transition-all duration-300">
-                  <badge.icon className="h-6 w-6 text-face-white" />
-                  <span className="font-bold font-manrope">{badge.text}</span>
-                </div>
-              ))}
+              {statsBadges.map((badge: any, index: number) => {
+                const IconComponent = getIconComponent(badge.icon);
+                return (
+                  <div key={index} className="flex items-center gap-3 bg-face-white/40 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-face-white/60 hover:bg-face-white/50 transition-all duration-300">
+                    <IconComponent className="h-6 w-6 text-face-white" />
+                    <span className="font-bold">{badge.text}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Wave effect */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg className="w-full h-24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" preserveAspectRatio="none">
             <path 
@@ -229,19 +407,19 @@ const Contact = () => {
               {/* Contact Form */}
               <div>
                 <h2 
-                  className="text-4xl font-clash font-bold mb-6 text-face-grey"
+                  className="text-4xl font-serif font-bold mb-6 text-face-grey"
                   dangerouslySetInnerHTML={{ 
                     __html: getContent(formContent, 'form_title', 'Send us a <span class="text-face-sky-blue">Message</span>')
                   }}
                 />
-                <p className="text-face-grey/60 mb-8 text-lg font-manrope">
+                <p className="text-face-grey/60 mb-8 text-lg">
                   {getContent(formContent, 'form_subtitle', 'Fill out the form below and our team will get back to you as soon as possible.')}
                 </p>
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
+                      <label htmlFor="firstName" className="block text-sm font-medium text-face-grey mb-2">
                         {getContent(formContent, 'first_name_label', 'First Name *')}
                       </label>
                       <Input
@@ -250,12 +428,12 @@ const Contact = () => {
                         value={formData.firstName}
                         onChange={handleInputChange}
                         placeholder={getContent(formContent, 'first_name_placeholder', 'John')}
-                        className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue font-manrope"
+                        className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue"
                         required
                       />
                     </div>
                     <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
+                      <label htmlFor="lastName" className="block text-sm font-medium text-face-grey mb-2">
                         {getContent(formContent, 'last_name_label', 'Last Name *')}
                       </label>
                       <Input
@@ -264,14 +442,14 @@ const Contact = () => {
                         value={formData.lastName}
                         onChange={handleInputChange}
                         placeholder={getContent(formContent, 'last_name_placeholder', 'Doe')}
-                        className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue font-manrope"
+                        className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue"
                         required
                       />
                     </div>
                   </div>
                   
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
+                    <label htmlFor="email" className="block text-sm font-medium text-face-grey mb-2">
                       {getContent(formContent, 'email_label', 'Email Address *')}
                     </label>
                     <Input
@@ -281,13 +459,13 @@ const Contact = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder={getContent(formContent, 'email_placeholder', 'john.doe@example.com')}
-                      className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue font-manrope"
+                      className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue"
                       required
                     />
                   </div>
                   
                   <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
+                    <label htmlFor="subject" className="block text-sm font-medium text-face-grey mb-2">
                       {getContent(formContent, 'subject_label', 'Subject *')}
                     </label>
                     <Input
@@ -296,13 +474,13 @@ const Contact = () => {
                       value={formData.subject}
                       onChange={handleInputChange}
                       placeholder={getContent(formContent, 'subject_placeholder', 'How can we help you?')}
-                      className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue font-manrope"
+                      className="w-full border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue"
                       required
                     />
                   </div>
                   
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-face-grey mb-2 font-manrope">
+                    <label htmlFor="message" className="block text-sm font-medium text-face-grey mb-2">
                       {getContent(formContent, 'message_label', 'Message *')}
                     </label>
                     <Textarea
@@ -311,7 +489,7 @@ const Contact = () => {
                       value={formData.message}
                       onChange={handleInputChange}
                       placeholder={getContent(formContent, 'message_placeholder', 'Please provide details about your inquiry...')}
-                      className="w-full min-h-[150px] border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue resize-vertical font-manrope"
+                      className="w-full min-h-[150px] border-face-sky-blue/30 focus:ring-face-sky-blue focus:border-face-sky-blue resize-vertical"
                       required
                     />
                   </div>
@@ -319,7 +497,7 @@ const Contact = () => {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-face-white w-full py-4 px-8 rounded-full font-bold text-lg flex items-center justify-center gap-3 transform hover:scale-105 transition-all duration-300 shadow-lg font-manrope"
+                    className="bg-face-sky-blue hover:bg-face-sky-blue-dark text-face-white w-full py-4 px-8 rounded-full font-bold text-lg flex items-center justify-center gap-3 transform hover:scale-105 transition-all duration-300 shadow-lg"
                   >
                     {isSubmitting ? (
                       <>
@@ -339,12 +517,12 @@ const Contact = () => {
               {/* Contact Information */}
               <div>
                 <h2 
-                  className="text-4xl font-clash font-bold mb-6 text-face-grey"
+                  className="text-4xl font-serif font-bold mb-6 text-face-grey"
                   dangerouslySetInnerHTML={{
                     __html: getContent(contactInfoContent, 'info_title', 'Contact <span class="text-face-sky-blue">Information</span>')
                   }}
                 />
-                <p className="text-face-grey/60 mb-8 text-lg font-manrope">
+                <p className="text-face-grey/60 mb-8 text-lg">
                   {getContent(contactInfoContent, 'info_subtitle', 'Our team is available to assist you with any questions regarding nominations, event details, or general inquiries about the FACE Awards.')}
                 </p>
                 
@@ -354,26 +532,26 @@ const Contact = () => {
                       <Mail className="h-8 w-8 text-face-sky-blue" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">
+                      <h3 className="font-bold text-xl mb-2 text-face-grey">
                         {getContent(contactInfoContent, 'email_section_title', 'Email Us')}
                       </h3>
-                      <p className="text-face-grey/60 mb-1 font-manrope">
+                      <p className="text-face-grey/60 mb-1">
                         {getContent(contactInfoContent, 'email_general_label', 'For general inquiries:')}
                       </p>
                       <a 
-                        href={`mailto:${getContent(globalSettings, 'primary_email', 'info@faceawards.org')}`}
-                        className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg font-manrope"
+                        href={`mailto:${getGlobalContent('contact_info', 'primary_email', 'info@faceawards.org')}`}
+                        className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg"
                       >
-                        {getContent(globalSettings, 'primary_email', 'info@faceawards.org')}
+                        {getGlobalContent('contact_info', 'primary_email', 'info@faceawards.org')}
                       </a>
-                      <p className="text-face-grey/60 mt-3 mb-1 font-manrope">
+                      <p className="text-face-grey/60 mt-3 mb-1">
                         {getContent(contactInfoContent, 'email_nominations_label', 'For nominations:')}
                       </p>
                       <a 
-                        href={`mailto:${getContent(globalSettings, 'nominations_email', 'nominations@faceawards.org')}`}
-                        className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg font-manrope"
+                        href={`mailto:${getGlobalContent('contact_info', 'nominations_email', 'nominations@faceawards.org')}`}
+                        className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg"
                       >
-                        {getContent(globalSettings, 'nominations_email', 'nominations@faceawards.org')}
+                        {getGlobalContent('contact_info', 'nominations_email', 'nominations@faceawards.org')}
                       </a>
                     </div>
                   </div>
@@ -383,26 +561,26 @@ const Contact = () => {
                       <Phone className="h-8 w-8 text-face-sky-blue" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">
+                      <h3 className="font-bold text-xl mb-2 text-face-grey">
                         {getContent(contactInfoContent, 'phone_section_title', 'Call Us')}
                       </h3>
-                      <p className="text-face-grey/60 mb-1 font-manrope">
+                      <p className="text-face-grey/60 mb-1">
                         {getContent(contactInfoContent, 'phone_international_label', 'International:')}
                       </p>
                       <a 
-                        href={`tel:${getContent(globalSettings, 'phone_international', '+1 (234) 567-8901').replace(/[^+\d]/g, '')}`}
-                        className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg font-manrope"
+                        href={`tel:${getGlobalContent('contact_info', 'phone_international', '+1 (234) 567-8901').replace(/[^+\d]/g, '')}`}
+                        className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg"
                       >
-                        {getContent(globalSettings, 'phone_international', '+1 (234) 567-8901')}
+                        {getGlobalContent('contact_info', 'phone_international', '+1 (234) 567-8901')}
                       </a>
-                      <p className="text-face-grey/60 mt-3 mb-1 font-manrope">
+                      <p className="text-face-grey/60 mt-3 mb-1">
                         {getContent(contactInfoContent, 'phone_toll_free_label', 'Toll Free:')}
                       </p>
                       <a 
-                        href={`tel:${getContent(globalSettings, 'phone_toll_free', '1-800-555-1000').replace(/[^+\d]/g, '')}`}
-                        className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg font-manrope"
+                        href={`tel:${getGlobalContent('contact_info', 'phone_toll_free', '1-800-555-1000').replace(/[^+\d]/g, '')}`}
+                        className="text-face-sky-blue hover:text-face-sky-blue-dark transition font-medium text-lg"
                       >
-                        {getContent(globalSettings, 'phone_toll_free', '1-800-555-1000')}
+                        {getGlobalContent('contact_info', 'phone_toll_free', '1-800-555-1000')}
                       </a>
                     </div>
                   </div>
@@ -412,15 +590,14 @@ const Contact = () => {
                       <MapPin className="h-8 w-8 text-face-sky-blue" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">
+                      <h3 className="font-bold text-xl mb-2 text-face-grey">
                         {getContent(contactInfoContent, 'address_section_title', 'Visit Us')}
                       </h3>
                       <div 
-                        className="text-face-grey/60 leading-relaxed font-manrope"
+                        className="text-face-grey/60 leading-relaxed"
                         dangerouslySetInnerHTML={{
-                          __html: getContent(globalSettings, 'full_address', 
-                            'FACE Awards Global Headquarters<br>3120 Southwest freeway 1st floor<br>2003 Houston TX 77098<br>United States',
-                            { stripHtml: false }
+                          __html: getGlobalContent('contact_info', 'full_address', 
+                            'FACE Awards Global Headquarters<br>3120 Southwest freeway 1st floor<br>2003 Houston TX 77098<br>United States'
                           )
                         }}
                       />
@@ -432,20 +609,19 @@ const Contact = () => {
                       <Clock className="h-8 w-8 text-face-sky-blue" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl mb-2 text-face-grey font-clash">
+                      <h3 className="font-bold text-xl mb-2 text-face-grey">
                         {getContent(contactInfoContent, 'office_hours_section_title', 'Office Hours')}
                       </h3>
                       <div 
-                        className="text-face-grey/60 leading-relaxed font-manrope"
+                        className="text-face-grey/60 leading-relaxed"
                         dangerouslySetInnerHTML={{
-                          __html: getContent(globalSettings, 'office_hours', 
-                            'Monday - Friday: 9:00 AM - 5:00 PM (EST)<br>Saturday & Sunday: Closed',
-                            { stripHtml: false }
+                          __html: getGlobalContent('contact_info', 'office_hours', 
+                            'Monday - Friday: 9:00 AM - 5:00 PM (EST)<br>Saturday & Sunday: Closed'
                           )
                         }}
                       />
-                      <p className="text-face-grey/60 mt-3 font-manrope">
-                        {getContent(contactInfoContent, 'response_time_label', 'Response Time:')} {getContent(globalSettings, 'response_time', 'Within 24-48 business hours')}
+                      <p className="text-face-grey/60 mt-3">
+                        {getContent(contactInfoContent, 'response_time_label', 'Response Time:')} {getGlobalContent('contact_info', 'response_time', 'Within 24-48 business hours')}
                       </p>
                     </div>
                   </div>
@@ -461,64 +637,64 @@ const Contact = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <h2 
-              className="text-4xl font-clash font-bold mb-12 text-center text-face-grey"
-              dangerouslySetInnerHTML={{
-                __html: getContent(mapContent, 'title', 'Our <span class="text-face-sky-blue">Location</span>')
-              }}
-            />
-            <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-2xl border-4 border-face-white">
-              <iframe 
-                src={getContent(globalSettings, 'google_maps_embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387193.3059353029!2d-74.25986548248684!3d40.697149422113014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sca!4v1653486359204!5m2!1sen!2sca')}
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                loading="lazy" 
-                referrerPolicy="no-referrer-when-downgrade"
-                title="FACE Awards Global Headquarters Location"
-              ></iframe>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* FAQ CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-face-sky-blue via-face-sky-blue-dark to-face-grey">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-clash font-bold mb-8 text-face-white">
-              {getContent(faqContent, 'title', 'Still Have Questions?')}
-            </h2>
-            <p className="text-xl mb-12 text-face-white/90 leading-relaxed font-manrope">
-              {getContent(faqContent, 'subtitle', 'Check out our award process or explore our categories for more information about the FACE Awards.')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button
-                onClick={() => {
-                  navigate('/award-process');
-                  handleScrollToTop();
-                }}
-                className="bg-face-white text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white border-4 border-face-white hover:border-face-white shadow-2xl text-xl font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 font-manrope"
-              >
-                {getContent(faqContent, 'primary_button_text', 'View Award Process')}
-              </Button>
-              <Button
-                onClick={() => {
-                  navigate('/categories');
-                  handleScrollToTop();
-                }}
-                variant="outline"
-                className="border-4 border-face-white bg-transparent text-face-white hover:bg-face-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300 font-manrope"
-              >
-                {getContent(faqContent, 'secondary_button_text', 'Explore Categories')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <Footer />
-    </div>
-  );
+                className="text-4xl font-serif font-bold mb-12 text-center text-face-grey"
+             dangerouslySetInnerHTML={{
+               __html: getContent(mapContent, 'title', 'Our <span class="text-face-sky-blue">Location</span>')
+             }}
+           />
+           <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-2xl border-4 border-face-white">
+             <iframe 
+               src={getGlobalContent('contact_info', 'google_maps_embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387193.3059353029!2d-74.25986548248684!3d40.697149422113014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sca!4v1653486359204!5m2!1sen!2sca')}
+               width="100%" 
+               height="100%" 
+               style={{ border: 0 }} 
+               loading="lazy" 
+               referrerPolicy="no-referrer-when-downgrade"
+               title="FACE Awards Global Headquarters Location"
+             />
+           </div>
+         </div>
+       </div>
+     </section>
+     
+     {/* FAQ CTA Section */}
+     <section className="py-20 bg-gradient-to-r from-face-sky-blue via-face-sky-blue-dark to-face-grey">
+       <div className="container mx-auto px-4">
+         <div className="max-w-4xl mx-auto text-center">
+           <h2 className="text-4xl md:text-5xl font-serif font-bold mb-8 text-face-white">
+             {getContent(faqContent, 'title', 'Still Have Questions?')}
+           </h2>
+           <p className="text-xl mb-12 text-face-white/90 leading-relaxed">
+             {getContent(faqContent, 'subtitle', 'Check out our award process or explore our categories for more information about the FACE Awards.')}
+           </p>
+           <div className="flex flex-col sm:flex-row gap-6 justify-center">
+             <Button
+               onClick={() => {
+                 navigate('/award-process');
+                 handleScrollToTop();
+               }}
+               className="bg-face-white text-face-sky-blue hover:bg-face-sky-blue hover:text-face-white border-4 border-face-white hover:border-face-white shadow-2xl text-xl font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300"
+             >
+               {getContent(faqContent, 'primary_button_text', 'View Award Process')}
+             </Button>
+             <Button
+               onClick={() => {
+                 navigate('/categories');
+                 handleScrollToTop();
+               }}
+               variant="outline"
+               className="border-4 border-face-white bg-transparent text-face-white hover:bg-face-white hover:text-face-sky-blue shadow-2xl text-xl font-bold py-4 px-10 rounded-full transform hover:scale-105 transition-all duration-300"
+             >
+               {getContent(faqContent, 'secondary_button_text', 'Explore Categories')}
+             </Button>
+           </div>
+         </div>
+       </div>
+     </section>
+     
+     <Footer />
+   </div>
+ );
 };
 
 export default Contact;

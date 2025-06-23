@@ -1,60 +1,81 @@
 import { Link } from 'react-router-dom';
 import { Award, Mail, MapPin, Users, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
-import { extractContent } from '@/lib/contentUtils';
-import { usePageContent, useGlobalSettings } from '@/hooks/usePageContent';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api';
+import React from 'react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
-  // Fetch content from API
-  const { data: footerContent } = usePageContent('footer');
-  const { data: companyContent } = usePageContent('company_info');
-  const { data: globalSettings } = useGlobalSettings();
+  // Fetch global settings using the same pattern as About page
+  const { data: globalSettings } = useQuery({
+    queryKey: ['page-content', 'global_settings'],
+    queryFn: async () => {
+      try {
+        const result = await apiClient.getPageContent('global_settings');
+        console.log('Footer Global settings API Response:', result);
+        return result;
+      } catch (error) {
+        console.error('Footer Global settings API Error:', error);
+        throw error;
+      }
+    },
+    staleTime: 10 * 60 * 1000,
+    retry: 2,
+    retryDelay: 1000,
+  });
 
-  // Extract content with fallbacks
-  const getContent = (source: any, key: string, fallback: string = '', options?: any) => {
-    if (!source?.data?.data) return fallback;
-    return extractContent(source.data.data, key, fallback, options);
+  // Content extraction helper - updated for correct API structure
+  const getGlobalContent = (section: string, key: string, fallback: string = '') => {
+    try {
+      // Correct structure: data.sections.section_name.key.content
+      const contentData = globalSettings?.data?.sections?.[section]?.[key];
+      
+      if (!contentData) {
+        console.warn(`No global data found for ${section}/${key}, using fallback: ${fallback}`);
+        return fallback;
+      }
+      
+      let result = contentData.content;
+      console.log(`Extracted global content for ${section}/${key}:`, result);
+      return result || fallback;
+    } catch (error) {
+      console.error(`Error extracting global content for ${section}/${key}:`, error);
+      return fallback;
+    }
   };
 
-  // Social media links from global settings
-  const getSocialLinks = () => {
-    if (!globalSettings?.data?.data?.social_links_json?.content) {
-      // Fallback to individual social URLs
-      return [
-        {
-          platform: 'Facebook',
-          url: getContent(globalSettings, 'facebook_url', '#'),
-          icon: Facebook
-        },
-        {
-          platform: 'Twitter', 
-          url: getContent(globalSettings, 'twitter_url', '#'),
-          icon: Twitter
-        },
-        {
-          platform: 'Instagram',
-          url: getContent(globalSettings, 'instagram_url', '#'),
-          icon: Instagram
-        },
-        {
-          platform: 'LinkedIn',
-          url: getContent(globalSettings, 'linkedin_url', '#'),
-          icon: Linkedin
-        }
-      ];
-    }
-
+  // Parse JSON content safely - updated for correct API structure
+  const parseGlobalJsonContent = (section: string, key: string, fallback: any[] = []) => {
     try {
-      const socialData = JSON.parse(globalSettings.data.data.social_links_json.content);
-      return socialData.map((social: any) => ({
-        platform: social.platform,
-        url: social.url,
-        icon: getIconComponent(social.icon)
-      }));
+      // Correct structure: data.sections.section_name.key
+      const contentData = globalSettings?.data?.sections?.[section]?.[key];
+      
+      if (!contentData) {
+        console.warn(`No global JSON data found for ${section}/${key}, using fallback`);
+        return fallback;
+      }
+      
+      let content = contentData.content;
+      
+      // If it's already an array/object, return it directly
+      if (Array.isArray(content) || typeof content === 'object') {
+        console.log(`Successfully extracted ${contentData.type} content for ${section}/${key}:`, content);
+        return content;
+      }
+      
+      // If it's a JSON string, parse it
+      if (typeof content === 'string' && contentData.type === 'json') {
+        const parsed = JSON.parse(content);
+        console.log(`Successfully parsed JSON for ${section}/${key}:`, parsed);
+        return parsed;
+      }
+      
+      console.warn(`Content for ${section}/${key} is not in expected format, using fallback`);
+      return fallback;
     } catch (error) {
-      console.error('Failed to parse social links JSON:', error);
-      return [];
+      console.error(`Failed to parse JSON content for ${section}/${key}:`, error);
+      return fallback;
     }
   };
 
@@ -72,20 +93,71 @@ const Footer = () => {
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
-  // Get dynamic content
-  const companyName = getContent(companyContent, 'company_name', 'Outstanding FACE Global Recognition Awards');
-  const companyDescription = getContent(companyContent, 'company_description', 
+  // Get social media links from global settings
+  const getSocialLinks = () => {
+    // First try to get from social_links_json
+    const socialLinksJson = parseGlobalJsonContent('social_media', 'social_links_json', []);
+    
+    if (socialLinksJson.length > 0) {
+      return socialLinksJson.map((social: any) => ({
+        platform: social.platform,
+        url: social.url,
+        icon: getIconComponent(social.icon)
+      }));
+    }
+
+    // Fallback to individual social URLs
+    return [
+      {
+        platform: 'Facebook',
+        url: getGlobalContent('social_media', 'facebook_url', '#'),
+        icon: Facebook
+      },
+      {
+        platform: 'Twitter', 
+        url: getGlobalContent('social_media', 'twitter_url', '#'),
+        icon: Twitter
+      },
+      {
+        platform: 'Instagram',
+        url: getGlobalContent('social_media', 'instagram_url', '#'),
+        icon: Instagram
+      },
+      {
+        platform: 'LinkedIn',
+        url: getGlobalContent('social_media', 'linkedin_url', '#'),
+        icon: Linkedin
+      }
+    ];
+  };
+
+  // Get all content from global_settings with correct structure
+  const companyName = getGlobalContent('company_info', 'company_name', 'Outstanding FACE Global Recognition Awards');
+  const companyDescription = getGlobalContent('company_info', 'company_description', 
     'Celebrating outstanding individuals and organizations making meaningful impact across the globe. Recognizing excellence in innovation, leadership, and social contribution.');
-  const copyrightText = getContent(footerContent, 'copyright_text', 'Outstanding FACE Global Recognition Awards. All rights reserved.');
-  const footerNote = getContent(footerContent, 'footer_note', 'Excellence Recognized Globally');
+  const copyrightText = getGlobalContent('footer', 'copyright_text', 'Outstanding FACE Global Recognition Awards. All rights reserved.');
+  const footerNote = getGlobalContent('footer', 'footer_note', 'Excellence Recognized Globally');
   
-  // Contact information
-  const primaryEmail = getContent(globalSettings, 'primary_email', 'info@faceawards.org');
-  const fullAddress = getContent(globalSettings, 'full_address', 
-    'Global Headquarters<br>3120 Southwest freeway 1st floor<br>2003 Houston TX 77098<br>',
-    { stripHtml: false });
+  // Contact information from global_settings
+  const primaryEmail = getGlobalContent('contact_info', 'primary_email', 'info@faceawards.org');
+  const fullAddress = getGlobalContent('contact_info', 'full_address', 
+    'Global Headquarters<br>3120 Southwest freeway 1st floor<br>2003 Houston TX 77098<br>United States');
 
   const socialLinks = getSocialLinks();
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Footer Component - Global Settings:', globalSettings);
+    console.log('Footer Content:', {
+      companyName,
+      companyDescription,
+      copyrightText,
+      footerNote,
+      primaryEmail,
+      fullAddress,
+      socialLinks
+    });
+  }, [globalSettings, companyName, companyDescription, copyrightText, footerNote, primaryEmail, fullAddress, socialLinks]);
 
   return (
     <footer className="bg-gradient-to-br from-face-grey via-face-grey-light to-face-grey-dark text-face-white">
@@ -106,7 +178,7 @@ const Footer = () => {
             <div 
               className="text-face-white/90 leading-relaxed max-w-md font-manrope"
               dangerouslySetInnerHTML={{ 
-                __html: getContent(companyContent, 'company_description', companyDescription, { stripHtml: false })
+                __html: companyDescription
               }}
             />
             <div className="flex space-x-4">
@@ -117,6 +189,7 @@ const Footer = () => {
                   className="w-12 h-12 bg-face-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center text-face-white hover:bg-face-sky-blue hover:scale-110 transition-all duration-300"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={`Visit our ${social.platform} page`}
                 >
                   <social.icon className="h-5 w-5" />
                 </a>
@@ -132,10 +205,13 @@ const Footer = () => {
             <ul className="space-y-4">
               {[
                 { title: 'Home', path: '/' },
+                { title: 'About', path: '/about' },
+                { title: 'Categories', path: '/categories' },
                 { title: 'Current Nominees', path: '/nominees' },
                 { title: 'Past Winners', path: '/past-winners' },
                 { title: 'Gallery', path: '/gallery' },
-                { title: 'Registration', path: '/registration' }
+                { title: 'Registration', path: '/registration' },
+                { title: 'Contact', path: '/contact' }
               ].map((link) => (
                 <li key={link.path}>
                   <Link 
